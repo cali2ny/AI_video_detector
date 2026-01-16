@@ -139,6 +139,39 @@ npm install
 npm run dev
 ```
 
+## Netlify Deployment
+프로젝트는 Netlify 서버리스 환경에서 배포할 수 있도록 설정되어 있습니다.
+
+### 파일 구조
+```
+netlify/
+└── functions/
+    └── api.ts          # Express API를 serverless-http로 래핑
+netlify.toml            # Netlify 빌드 및 리다이렉트 설정
+```
+
+### 빌드 설정 (netlify.toml)
+- **Build Command**: `npx vite build`
+- **Publish Directory**: `dist/public`
+- **Functions Directory**: `netlify/functions`
+
+### 제한 사항 (Serverless 환경)
+- **시간대별 분석 비활성화**: Netlify 서버리스 환경에서는 ffmpeg/yt-dlp가 없어 temporal analysis 불가
+- **썸네일 분석만 지원**: 휴리스틱 이미지 분석 + 커뮤니티 의견 분석
+- **실행 시간 제한**: Netlify Functions는 10초 (Pro: 26초) 제한
+
+### 환경 변수 설정 (Netlify Dashboard)
+Site Settings → Build & Deploy → Environment에서 설정:
+- `YT_API_KEY` - YouTube Data API v3 키 (필수)
+- `AI_DETECT_API_BASE_URL` - 외부 딥러닝 API URL (선택)
+- `AI_DETECT_API_KEY` - 외부 API 인증 키 (선택)
+
+### 배포 방법
+1. GitHub 저장소 연결
+2. Netlify Dashboard에서 Build settings 확인
+3. 환경 변수 설정
+4. Deploy 실행
+
 ## Design System (Premium SaaS Theme)
 - **Background**: Dark gradient (navy → near-black) with radial highlights
 - **Primary**: Blue (217 91% 60%)
