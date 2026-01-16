@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { AlertCircle, RefreshCw } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PremiumCard } from "@/components/ui/premium-card";
 
 interface ErrorStateProps {
   error: string;
@@ -16,23 +16,45 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
       transition={{ duration: 0.3 }}
       data-testid="container-error"
     >
-      <Card className="border-destructive/50" data-testid="card-error">
-        <CardContent className="py-12">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center" data-testid="icon-error">
-              <AlertCircle className="h-8 w-8 text-destructive" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-2" data-testid="text-error-title">분석에 실패했습니다</h3>
-              <p className="text-sm text-muted-foreground max-w-md" data-testid="text-error-message">{error}</p>
-            </div>
-            <Button variant="outline" onClick={onRetry} className="mt-2" data-testid="button-retry">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              다시 시도
+      <PremiumCard variant="bordered" glow="danger" data-testid="card-error">
+        <div className="flex flex-col items-center gap-6 py-8 text-center">
+          <motion.div
+            className="w-20 h-20 rounded-2xl gradient-danger flex items-center justify-center shadow-lg"
+            animate={{ 
+              rotate: [0, -5, 5, -5, 0],
+            }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            data-testid="icon-error"
+          >
+            <AlertTriangle className="h-10 w-10 text-white" />
+          </motion.div>
+          
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold" data-testid="text-error-title">
+              Analysis Failed
+            </h3>
+            <p className="text-muted-foreground max-w-md" data-testid="text-error-message">
+              {error}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={onRetry}
+              className="gap-2"
+              data-testid="button-retry"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
             </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          <p className="text-xs text-muted-foreground">
+            If the problem persists, please check the video URL and try again
+          </p>
+        </div>
+      </PremiumCard>
     </motion.div>
   );
 }

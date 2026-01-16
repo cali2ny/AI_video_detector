@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Search, Youtube, Loader2, Link2 } from "lucide-react";
+import { Search, Youtube, Loader2, Link2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { PremiumCard } from "@/components/ui/premium-card";
 
 interface UrlInputFormProps {
   onSubmit: (url: string) => void;
@@ -31,65 +31,74 @@ export function UrlInputForm({ onSubmit, isLoading }: UrlInputFormProps) {
   const showValidation = url.length > 0 && !isValidYoutubeUrl(url);
 
   return (
-    <Card data-testid="card-url-input">
-      <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-analyze">
-          <div className="space-y-2">
-            <label
-              htmlFor="youtube-url"
-              className="text-sm font-medium flex items-center gap-2"
-              data-testid="label-url"
-            >
-              <Youtube className="h-4 w-4 text-destructive" />
-              YouTube 영상 URL
-            </label>
-            <div className="relative">
-              <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="youtube-url"
-                type="url"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="pl-10 h-12 text-base"
-                disabled={isLoading}
-                data-testid="input-youtube-url"
-              />
-            </div>
-            {showValidation && (
-              <p className="text-sm text-destructive" data-testid="text-validation-error">
-                유효한 YouTube URL 형식이 아닙니다
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full h-12 text-base font-medium"
-            disabled={isLoading || !url.trim() || showValidation}
-            data-testid="button-analyze"
+    <PremiumCard variant="glass" data-testid="card-url-input">
+      <form onSubmit={handleSubmit} className="space-y-5" data-testid="form-analyze">
+        <div className="space-y-3">
+          <label
+            htmlFor="youtube-url"
+            className="text-sm font-semibold flex items-center gap-2"
+            data-testid="label-url"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                분석 중...
-              </>
-            ) : (
-              <>
-                <Search className="mr-2 h-4 w-4" />
-                분석하기
-              </>
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-xs text-muted-foreground text-center" data-testid="text-form-description">
-            YouTube 영상의 썸네일과 프레임을 분석하여 AI 생성 가능성을
-            평가합니다
-          </p>
+            <div className="w-6 h-6 rounded-md bg-destructive/10 flex items-center justify-center">
+              <Youtube className="h-3.5 w-3.5 text-destructive" />
+            </div>
+            Enter YouTube Video URL
+          </label>
+          <div className="relative">
+            <Link2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="youtube-url"
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="pl-11 h-14 text-base bg-background/50 border-2 border-input focus:border-primary transition-colors"
+              disabled={isLoading}
+              data-testid="input-youtube-url"
+            />
+          </div>
+          {showValidation && (
+            <p className="text-sm text-destructive flex items-center gap-1.5" data-testid="text-validation-error">
+              <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+              Please enter a valid YouTube URL
+            </p>
+          )}
         </div>
-      </CardContent>
-    </Card>
+
+        <Button
+          type="submit"
+          className="w-full h-14 text-base font-semibold gradient-primary border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={isLoading || !url.trim() || showValidation}
+          data-testid="button-analyze"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Analyzing with Neural Detectors...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-5 w-5" />
+              Analyze Video
+            </>
+          )}
+        </Button>
+
+        <div className="flex items-center justify-center gap-6 pt-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            Heuristic Analysis
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+            Deep Learning API
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+            Score Fusion
+          </div>
+        </div>
+      </form>
+    </PremiumCard>
   );
 }

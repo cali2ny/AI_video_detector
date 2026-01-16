@@ -1,63 +1,116 @@
 import { motion } from "framer-motion";
-import { Youtube, Scan, BarChart3, Shield } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Youtube, Scan, Brain, Shield, Sparkles, ArrowRight } from "lucide-react";
+import { PremiumCard } from "@/components/ui/premium-card";
 
 export function EmptyState() {
   const features = [
     {
       icon: Scan,
-      title: "프레임 분석",
-      description: "썸네일과 프레임의 시각적 특성을 분석합니다",
+      title: "Frame Analysis",
+      description: "Analyzes brightness uniformity, color distribution, and edge density patterns",
+      color: "from-blue-500 to-cyan-500",
     },
     {
-      icon: BarChart3,
-      title: "AI 점수 산출",
-      description: "휴리스틱 알고리즘으로 AI 생성 가능성을 평가합니다",
+      icon: Brain,
+      title: "Neural Detection",
+      description: "Optional deep learning API integration for enhanced accuracy",
+      color: "from-violet-500 to-purple-500",
     },
     {
       icon: Shield,
-      title: "신뢰도 표시",
-      description: "명확한 레이블과 근거를 함께 제공합니다",
+      title: "Confidence Score",
+      description: "Clear percentage score with evidence-based explanations",
+      color: "from-emerald-500 to-green-500",
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <Card data-testid="card-empty-state">
-      <CardContent className="py-12">
-        <div className="text-center mb-8">
+    <PremiumCard variant="glass" data-testid="card-empty-state">
+      <motion.div
+        className="py-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} className="text-center mb-10">
           <motion.div
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4"
-            animate={{ scale: [1, 1.05, 1] }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary shadow-lg mb-6"
+            animate={{ 
+              boxShadow: [
+                "0 0 20px hsl(217 91% 60% / 0.3)",
+                "0 0 40px hsl(217 91% 60% / 0.5)",
+                "0 0 20px hsl(217 91% 60% / 0.3)",
+              ]
+            }}
             transition={{ duration: 2, repeat: Infinity }}
             data-testid="icon-youtube"
           >
-            <Youtube className="h-10 w-10 text-primary" />
+            <Youtube className="h-10 w-10 text-white" />
           </motion.div>
-          <h3 className="text-xl font-semibold mb-2" data-testid="text-empty-title">YouTube 영상을 분석해보세요</h3>
-          <p className="text-muted-foreground max-w-md mx-auto" data-testid="text-empty-description">
-            위 입력창에 YouTube 영상 URL을 붙여넣고 분석하기 버튼을 클릭하세요
+          
+          <h3 className="text-2xl md:text-3xl font-bold mb-3" data-testid="text-empty-title">
+            <span className="gradient-text">Detect AI-Generated Videos</span>
+          </h3>
+          <p className="text-muted-foreground max-w-lg mx-auto text-base" data-testid="text-empty-description">
+            Paste any YouTube video URL above and our neural detection system will analyze it for signs of AI generation
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-4 md:grid-cols-3" data-testid="list-features">
+        <motion.div
+          className="grid gap-4 md:grid-cols-3 mb-8"
+          variants={containerVariants}
+          data-testid="list-features"
+        >
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className="flex flex-col items-center text-center p-4 rounded-md bg-muted/50"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              className="group relative p-5 rounded-xl bg-card/50 border border-card-border hover:border-primary/30 transition-all duration-300"
+              variants={itemVariants}
+              whileHover={{ y: -4 }}
               data-testid={`card-feature-${index}`}
             >
-              <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center mb-3 border">
-                <feature.icon className="h-5 w-5 text-primary" />
+              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform`}>
+                <feature.icon className="h-6 w-6 text-white" />
               </div>
-              <h4 className="font-medium mb-1">{feature.title}</h4>
-              <p className="text-xs text-muted-foreground">{feature.description}</p>
+              <h4 className="font-semibold mb-2">{feature.title}</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
-        </div>
-      </CardContent>
-    </Card>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-muted-foreground"
+        >
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span>100% Free to Use</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50">
+            <Shield className="h-4 w-4 text-green-500" />
+            <span>Privacy-First Analysis</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50">
+            <ArrowRight className="h-4 w-4 text-violet-500" />
+            <span>Instant Results</span>
+          </div>
+        </motion.div>
+      </motion.div>
+    </PremiumCard>
   );
 }

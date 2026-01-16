@@ -1,16 +1,13 @@
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
+  FileSearch,
   Lightbulb,
-  FileText,
-  Image,
   Clock,
   Cpu,
+  ChevronRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PremiumCard, PremiumCardHeader } from "@/components/ui/premium-card";
 import { ScoreGauge } from "./score-gauge";
 import type { AnalyzeVideoResponse } from "@shared/schema";
 
@@ -26,14 +23,14 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.15,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
   return (
@@ -45,105 +42,106 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
       data-testid="container-analysis-result"
     >
       <motion.div variants={itemVariants}>
-        <Card data-testid="card-main-result">
-          <CardContent className="pt-6">
-            <div className="flex flex-col lg:flex-row items-center gap-6">
-              <div className="flex-shrink-0">
-                <img
-                  src={meta.thumbnailUrl}
-                  alt="Video thumbnail"
-                  className="w-64 h-36 object-cover rounded-md border"
-                  data-testid="img-thumbnail"
-                />
-              </div>
-              <div className="flex-1 flex flex-col items-center lg:items-start">
-                <ScoreGauge score={score} label={label} />
-              </div>
+        <PremiumCard variant="glass" glow={score >= 70 ? "danger" : score >= 40 ? "warning" : "success"} data-testid="card-main-result">
+          <div className="flex flex-col lg:flex-row items-center gap-8 py-4">
+            <div className="flex-shrink-0 relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-pink-500 rounded-xl opacity-30 blur group-hover:opacity-50 transition-opacity" />
+              <img
+                src={meta.thumbnailUrl}
+                alt="Video thumbnail"
+                className="relative w-72 h-40 object-cover rounded-lg border-2 border-card-border"
+                data-testid="img-thumbnail"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1 flex flex-col items-center lg:items-start">
+              <ScoreGauge score={score} label={label} />
+            </div>
+          </div>
+        </PremiumCard>
       </motion.div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <motion.div variants={itemVariants}>
-          <Card className="h-full" data-testid="card-reasons">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <FileText className="h-4 w-4 text-primary" />
-                분석 근거
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2" data-testid="list-reasons">
-                {reasons.map((reason, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                    data-testid={`text-reason-${index}`}
-                  >
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
-                      {index + 1}
-                    </span>
+          <PremiumCard className="h-full" data-testid="card-reasons">
+            <PremiumCardHeader
+              icon={<FileSearch className="h-5 w-5" />}
+              title="Analysis Evidence"
+              subtitle="Key indicators detected in the video"
+            />
+            <ul className="space-y-3" data-testid="list-reasons">
+              {reasons.map((reason, index) => (
+                <motion.li
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
+                  data-testid={`text-reason-${index}`}
+                >
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full gradient-primary text-white flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm text-muted-foreground leading-relaxed">
                     {reason}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </PremiumCard>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="h-full" data-testid="card-tips">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Lightbulb className="h-4 w-4 text-yellow-500" />
-                확인 팁
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2" data-testid="list-tips">
-                {tips.map((tip, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                    data-testid={`text-tip-${index}`}
-                  >
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-yellow-500/10 text-yellow-500 flex items-center justify-center text-xs font-medium">
-                      {index + 1}
-                    </span>
+          <PremiumCard className="h-full" data-testid="card-tips">
+            <PremiumCardHeader
+              icon={<Lightbulb className="h-5 w-5" />}
+              title="Verification Tips"
+              subtitle="Recommended next steps"
+            />
+            <ul className="space-y-3" data-testid="list-tips">
+              {tips.map((tip, index) => (
+                <motion.li
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/5 hover:bg-amber-500/10 transition-colors border border-amber-500/10"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
+                  data-testid={`text-tip-${index}`}
+                >
+                  <ChevronRight className="flex-shrink-0 w-4 h-4 text-amber-500 mt-0.5" />
+                  <span className="text-sm text-muted-foreground leading-relaxed">
                     {tip}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </PremiumCard>
         </motion.div>
       </div>
 
       <motion.div variants={itemVariants}>
-        <Card data-testid="card-meta">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+        <PremiumCard data-testid="card-meta">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-muted-foreground" />
-              분석 정보
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+              <span className="text-sm font-medium">Analysis Metadata</span>
+            </div>
             <div className="flex flex-wrap gap-3">
-              <Badge variant="secondary" className="flex items-center gap-1.5" data-testid="badge-source">
-                <Image className="h-3 w-3" />
-                분석 방식:{" "}
+              <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1" data-testid="badge-source">
+                <div className="w-2 h-2 rounded-full gradient-primary" />
                 {meta.source === "heuristic_only"
-                  ? "휴리스틱 분석"
-                  : "휴리스틱 + 딥러닝 API"}
+                  ? "Heuristic Analysis Only"
+                  : "Heuristic + Deep Learning API"}
               </Badge>
-              <Badge variant="secondary" className="flex items-center gap-1.5" data-testid="badge-timestamp">
+              <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1" data-testid="badge-timestamp">
                 <Clock className="h-3 w-3" />
-                분석 시간: {new Date(meta.analyzedAt).toLocaleString("ko-KR")}
+                {new Date(meta.analyzedAt).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </Badge>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </PremiumCard>
       </motion.div>
     </motion.div>
   );
