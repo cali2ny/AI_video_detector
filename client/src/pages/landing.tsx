@@ -192,6 +192,91 @@ export default function Landing() {
       </main>
 
       <section
+        className="relative z-10 py-24 px-4 border-t border-border/20"
+        data-testid="section-why"
+      >
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-4" data-testid="text-why-title">
+              <span className="gradient-text">왜 AI Video Detector인가요?</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-8" data-testid="text-why-desc">
+              AI 생성 영상이 급증하는 시대, 진짜와 가짜를 구별하는 것이 점점 어려워지고 있습니다.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            data-testid="list-why-cards"
+          >
+            <div className="glass-card rounded-xl p-6" data-testid="card-why-0">
+              <h3 className="font-semibold text-lg mb-3 text-primary">딥페이크 위협 증가</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Sora, Runway, Pika 등 AI 영상 생성 도구가 발전하면서 
+                누구나 쉽게 사실적인 가짜 영상을 만들 수 있게 되었습니다. 
+                가짜 뉴스, 사기, 명예훼손 등 악용 사례가 늘어나고 있습니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-6" data-testid="card-why-1">
+              <h3 className="font-semibold text-lg mb-3 text-primary">신뢰할 수 있는 정보 확인</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                SNS와 뉴스에서 본 충격적인 영상, 과연 진짜일까요? 
+                AI Video Inspector는 객관적인 기술 분석을 통해 
+                영상의 진위 여부를 판단하는 데 도움을 드립니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-6" data-testid="card-why-2">
+              <h3 className="font-semibold text-lg mb-3 text-primary">미디어 리터러시 향상</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                단순히 결과만 보여주지 않습니다. 
+                AI 생성 영상의 특징적인 패턴을 설명하여 
+                스스로 가짜 영상을 판별하는 능력을 키울 수 있도록 돕습니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-6" data-testid="card-why-3">
+              <h3 className="font-semibold text-lg mb-3 text-primary">커뮤니티 집단지성 활용</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                기술적 분석뿐만 아니라 YouTube 댓글을 분석하여 
+                다른 시청자들의 의견도 함께 제공합니다. 
+                집단지성을 활용한 종합적인 판단이 가능합니다.
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="mt-10 glass-card rounded-xl p-5 border-l-4 border-l-amber-500"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            data-testid="card-beta-notice"
+          >
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-sm mb-1">베타 버전 안내</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  현재 베타 버전으로, <strong className="text-foreground">영상의 썸네일 이미지만 분석</strong>합니다. 
+                  영상 전체 프레임을 분석하는 기능은 추후 업데이트 예정입니다. 
+                  분석 결과는 확률적 추정이며 100% 정확하지 않을 수 있으니 참고용으로 활용해 주세요.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section
         ref={howItWorksRef}
         className="relative z-10 py-24 px-4 border-t border-border/20"
         data-testid="section-how-it-works"
