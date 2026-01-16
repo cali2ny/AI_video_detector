@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Brain, Scan, FileText, Link2, Sparkles, AlertCircle, Sun, Palette, Layers, Grid3X3, Waves, Focus, Radio, Contrast, Thermometer, ChevronDown, Users, Zap } from "lucide-react";
+import { Brain, Scan, FileText, Link2, Sparkles, AlertCircle, Sun, Palette, Layers, Grid3X3, Waves, Focus, Radio, Contrast, Thermometer, ChevronDown, Users, Zap, Shield, Clock, Gauge, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -80,7 +80,30 @@ export default function Landing() {
         </div>
       </div>
 
-      <main className="relative z-10 min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 pt-28">
+      <div className="fixed top-[5.5rem] left-0 right-0 z-30 bg-background/40 backdrop-blur-sm border-b border-border/20" data-testid="banner-stats">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-center gap-6 md:gap-10 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1.5" data-testid="stat-metrics">
+              <Gauge className="h-3 w-3 text-primary/70" />
+              <span><span className="font-semibold text-foreground/80">9개</span> 탐지 메트릭</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5" data-testid="stat-speed">
+              <Clock className="h-3 w-3 text-emerald-500/70" />
+              <span><span className="font-semibold text-foreground/80">3초</span> 내 분석</span>
+            </div>
+            <div className="flex items-center gap-1.5" data-testid="stat-privacy">
+              <Shield className="h-3 w-3 text-amber-500/70" />
+              <span>데이터 <span className="font-semibold text-foreground/80">미저장</span></span>
+            </div>
+            <div className="hidden md:flex items-center gap-1.5" data-testid="stat-free">
+              <Fingerprint className="h-3 w-3 text-violet-500/70" />
+              <span><span className="font-semibold text-foreground/80">무료</span> 사용</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="relative z-10 min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 pt-36">
         <div className="w-full max-w-xl space-y-12">
           <motion.div
             className="text-center space-y-4"
