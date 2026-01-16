@@ -1,3 +1,8 @@
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
 export interface VideoMetadata {
   channelTitle?: string;
   durationSeconds?: number;
@@ -60,11 +65,31 @@ function parseDuration(duration: string): number {
   return hours * 3600 + minutes * 60 + seconds;
 }
 
+async function getDurationViaYtdlp(videoId: string): Promise<number | undefined> {
+  try {
+    const { stdout } = await execAsync(
+      `yt-dlp --get-duration "https://www.youtube.com/watch?v=${videoId}"`,
+      { timeout: 15000 }
+    );
+    const durationStr = stdout.trim();
+    const parts = durationStr.split(":").map(Number);
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return undefined;
+  } catch (error) {
+    console.warn("Failed to get duration via yt-dlp:", error);
+    return undefined;
+  }
+}
+
 export async function getVideoMetadata(videoId: string): Promise<VideoMetadata> {
   const apiKey = process.env.YT_API_KEY;
   
   if (!apiKey) {
-    return {};
+    console.log("[YouTube] No API key, using yt-dlp for duration");
+    const durationSeconds = await getDurationViaYtdlp(videoId);
+    return { durationSeconds };
   }
 
   try {
@@ -73,13 +98,15 @@ export async function getVideoMetadata(videoId: string): Promise<VideoMetadata> 
     
     if (!response.ok) {
       console.warn("YouTube API request failed:", response.status);
-      return {};
+      const durationSeconds = await getDurationViaYtdlp(videoId);
+      return { durationSeconds };
     }
 
     const data = await response.json();
     
     if (!data.items || data.items.length === 0) {
-      return {};
+      const durationSeconds = await getDurationViaYtdlp(videoId);
+      return { durationSeconds };
     }
 
     const item = data.items[0];
@@ -92,6 +119,7 @@ export async function getVideoMetadata(videoId: string): Promise<VideoMetadata> 
     };
   } catch (error) {
     console.warn("Error fetching YouTube metadata:", error);
-    return {};
+    const durationSeconds = await getDurationViaYtdlp(videoId);
+    return { durationSeconds };
   }
 }

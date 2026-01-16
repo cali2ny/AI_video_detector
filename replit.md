@@ -56,13 +56,23 @@ YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분�
      - YouTube Data API v3로 상위 50개 댓글 수집
      - 키워드 기반 AI/REAL/NEUTRAL 분류
      - 커뮤니티 보정: aiVotes >= 30% → +10점, aiVotes <= 5% → -5점
-  4. **Score Combiner** (`server/utils/score-combiner.ts`)
+  4. **Temporal Analysis Layer** (`server/utils/temporal-analysis.ts`)
+     - 영상을 4~16개 시간 구간으로 분할하여 각 프레임 분석
+     - yt-dlp로 스트림 URL 획득, ffmpeg spawn으로 프레임 추출
+     - 구간별 AI 점수 및 전체 평가 (FULL_AI, PARTIAL_AI, LIKELY_REAL)
+     - 전환 구간 감지: 인접 구간 점수 차이 ≥25% 시 경고
+     - 상태 추적: success, partial, failed + errorReason 제공
+  5. **Score Combiner** (`server/utils/score-combiner.ts`)
      - 휴리스틱만: `finalScore = heuristicScore + communityAdjustment`
      - 외부 API 포함: `finalScore = heuristicScore * 0.3 + externalScore * 0.7 + communityAdjustment`
+     - 시간 분석 결과 notes를 reasons에 추가
+
+### Key Components (Updated)
+- `components/temporal-timeline.tsx` - 시간대별 분석 타임라인 시각화
 
 ### Shared Types
 - **Location**: `shared/schema.ts`
-- Key types: `AnalyzeVideoRequest`, `AnalyzeVideoResponse`, `HeuristicResult`, `CommunityAnalysis`
+- Key types: `AnalyzeVideoRequest`, `AnalyzeVideoResponse`, `HeuristicResult`, `CommunityAnalysis`, `TemporalSegment`, `TemporalAnalysis`
 
 ## API Endpoints
 

@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScoreGauge } from "./score-gauge";
 import { CommunityOpinions } from "./community-opinions";
+import { TemporalTimeline } from "./temporal-timeline";
 import type { AnalyzeVideoResponse } from "@shared/schema";
 
 interface AnalysisResultProps {
@@ -28,6 +29,7 @@ const CATEGORY_TAGS: Record<string, string> = {
   "딥러닝": "딥러닝 결과",
   "외부": "딥러닝 결과",
   "커뮤니티": "시청자 의견",
+  "시간": "시간 분석",
 };
 
 function getCategoryTag(reason: string): string {
@@ -40,7 +42,7 @@ function getCategoryTag(reason: string): string {
 }
 
 export function AnalysisResult({ result }: AnalysisResultProps) {
-  const { score, label, reasons, tips, meta, debug, community } = result;
+  const { score, label, reasons, tips, meta, debug, community, temporal } = result;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -217,6 +219,12 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
           </div>
         </motion.div>
       </div>
+
+      {temporal && (
+        <motion.div variants={itemVariants}>
+          <TemporalTimeline temporal={temporal} durationSeconds={meta.durationSeconds} />
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants}>
         <div className="glass-card rounded-2xl p-5" data-testid="card-meta">

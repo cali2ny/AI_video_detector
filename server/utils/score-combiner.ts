@@ -1,4 +1,4 @@
-import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta, DebugInfo, CommunityAnalysis } from "@shared/schema";
+import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta, DebugInfo, CommunityAnalysis, TemporalAnalysis } from "@shared/schema";
 
 interface CombineScoreParams {
   heuristicScore: number;
@@ -11,6 +11,7 @@ interface CombineScoreParams {
   community?: CommunityAnalysis;
   communityAdjustment: number;
   communityReason: string | null;
+  temporal?: TemporalAnalysis | null;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -60,6 +61,7 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
     community,
     communityAdjustment,
     communityReason,
+    temporal,
   } = params;
 
   let baseScore: number;
@@ -88,6 +90,10 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
     reasons.push(communityReason);
   }
 
+  if (temporal && temporal.notes.length > 0) {
+    reasons.push(...temporal.notes);
+  }
+
   const debug: DebugInfo = {
     heuristicScore: Math.round(heuristicScore),
     externalApiScore: externalScore !== null ? Math.round(externalScore) : null,
@@ -111,5 +117,6 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
     },
     debug,
     community,
+    temporal: temporal || undefined,
   };
 }

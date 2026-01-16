@@ -6,6 +6,7 @@ import { analyzeImage } from "./utils/image-analysis";
 import { callExternalDetectionApi } from "./utils/external-api";
 import { combineScores } from "./utils/score-combiner";
 import { fetchAndAnalyzeComments, calculateCommunityAdjustment } from "./utils/comments";
+import { performTemporalAnalysis } from "./utils/temporal-analysis";
 
 const analyzeRequestSchema = z.object({
   videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
@@ -40,9 +41,39 @@ export async function registerRoutes(
         fetchAndAnalyzeComments(videoId),
       ]);
 
-      const heuristicResult = await analyzeImage(thumbnailUrl);
+      const getTemporalAnalysis = async () => {
+        if (!metadata.durationSeconds) {
+          console.log("[Temporal] No duration available, returning failed status");
+          return {
+            segments: [],
+            overallAssessment: "UNAVAILABLE" as const,
+            notes: [],
+            averageScore: 0,
+            aiSegmentPercentage: 0,
+            status: "failed" as const,
+            errorReason: "영상 길이 정보를 가져올 수 없습니다",
+          };
+        }
+        if (metadata.durationSeconds < 4) {
+          console.log("[Temporal] Video too short, returning failed status");
+          return {
+            segments: [],
+            overallAssessment: "UNAVAILABLE" as const,
+            notes: [],
+            averageScore: 0,
+            aiSegmentPercentage: 0,
+            status: "failed" as const,
+            errorReason: "영상이 너무 짧아 시간대별 분석이 불가능합니다 (최소 4초 이상)",
+          };
+        }
+        return performTemporalAnalysis(videoId, metadata.durationSeconds);
+      };
 
-      const externalResult = await callExternalDetectionApi([thumbnailUrl]);
+      const [heuristicResult, externalResult, temporal] = await Promise.all([
+        analyzeImage(thumbnailUrl),
+        callExternalDetectionApi([thumbnailUrl]),
+        getTemporalAnalysis(),
+      ]);
 
       const { adjustment: communityAdjustment, reason: communityReason } = calculateCommunityAdjustment(community);
 
@@ -57,6 +88,7 @@ export async function registerRoutes(
         community,
         communityAdjustment,
         communityReason,
+        temporal,
       });
 
       return res.json(response);

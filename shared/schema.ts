@@ -83,4 +83,6 @@ export interface TemporalAnalysis {
   notes: string[];
   averageScore: number;
   aiSegmentPercentage: number;
+  status?: "success" | "partial" | "failed";
+  errorReason?: string;
 }

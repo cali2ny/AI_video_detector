@@ -1,9 +1,14 @@
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import type { TemporalSegment, TemporalAnalysis, TemporalAssessment, DetectionLabel } from "@shared/schema";
 import { analyzeImageBuffer } from "./image-analysis";
 
 const execAsync = promisify(exec);
+
+interface TemporalAnalysisStatus {
+  available: boolean;
+  errorReason?: string;
+}
 
 interface SegmentRange {
   start: number;
@@ -51,21 +56,47 @@ async function getVideoStreamUrl(videoId: string): Promise<string | null> {
   }
 }
 
-async function extractFrameAtTime(streamUrl: string, timeSeconds: number): Promise<Buffer | null> {
-  try {
-    const { stdout } = await execAsync(
-      `ffmpeg -ss ${timeSeconds} -i "${streamUrl}" -frames:v 1 -f image2pipe -vcodec png -`,
-      { 
-        timeout: 15000,
-        encoding: "buffer",
-        maxBuffer: 10 * 1024 * 1024
+function extractFrameAtTime(streamUrl: string, timeSeconds: number): Promise<Buffer | null> {
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = [];
+    const timeout = setTimeout(() => {
+      proc.kill();
+      resolve(null);
+    }, 20000);
+
+    const proc = spawn("ffmpeg", [
+      "-ss", String(timeSeconds),
+      "-i", streamUrl,
+      "-frames:v", "1",
+      "-f", "image2pipe",
+      "-vcodec", "png",
+      "-"
+    ], {
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    proc.stdout.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    proc.stderr.on("data", () => {
+    });
+
+    proc.on("close", (code) => {
+      clearTimeout(timeout);
+      if (code === 0 && chunks.length > 0) {
+        resolve(Buffer.concat(chunks));
+      } else {
+        resolve(null);
       }
-    );
-    return stdout as unknown as Buffer;
-  } catch (error) {
-    console.error(`Failed to extract frame at ${timeSeconds}s:`, error);
-    return null;
-  }
+    });
+
+    proc.on("error", (error) => {
+      clearTimeout(timeout);
+      console.error(`Failed to spawn ffmpeg for ${timeSeconds}s:`, error.message);
+      resolve(null);
+    });
+  });
 }
 
 function getLabel(score: number): DetectionLabel {
@@ -130,18 +161,32 @@ export async function performTemporalAnalysis(
   videoId: string,
   durationSeconds: number
 ): Promise<TemporalAnalysis | null> {
+  console.log(`[Temporal] Starting analysis for video ${videoId}, duration ${durationSeconds}s`);
+  
   if (durationSeconds < 4) {
+    console.log("[Temporal] Video too short, skipping");
     return null;
   }
 
   const streamUrl = await getVideoStreamUrl(videoId);
   if (!streamUrl) {
-    console.log("Could not get video stream URL, skipping temporal analysis");
-    return null;
+    console.log("[Temporal] Could not get video stream URL, returning failed status");
+    return {
+      segments: [],
+      overallAssessment: "UNAVAILABLE",
+      notes: [],
+      averageScore: 0,
+      aiSegmentPercentage: 0,
+      status: "failed",
+      errorReason: "영상 스트림을 가져올 수 없습니다",
+    };
   }
 
+  console.log(`[Temporal] Got stream URL, extracting frames...`);
   const segmentRanges = generateSegments(durationSeconds);
   const segments: TemporalSegment[] = [];
+  let successfulFrames = 0;
+  let failedFrames = 0;
 
   const concurrencyLimit = 3;
   for (let i = 0; i < segmentRanges.length; i += concurrencyLimit) {
@@ -151,6 +196,8 @@ export async function performTemporalAnalysis(
       const frameBuffer = await extractFrameAtTime(streamUrl, midpoint);
       
       if (!frameBuffer || frameBuffer.length === 0) {
+        failedFrames++;
+        console.log(`[Temporal] Frame extraction failed for ${midpoint}s`);
         return {
           startSeconds: range.start,
           endSeconds: range.end,
@@ -161,6 +208,8 @@ export async function performTemporalAnalysis(
 
       try {
         const result = await analyzeImageBuffer(frameBuffer);
+        successfulFrames++;
+        console.log(`[Temporal] Frame at ${midpoint}s analyzed: score=${result.score}`);
         return {
           startSeconds: range.start,
           endSeconds: range.end,
@@ -168,7 +217,8 @@ export async function performTemporalAnalysis(
           label: getLabel(result.score),
         };
       } catch (error) {
-        console.error(`Failed to analyze frame for segment ${range.start}-${range.end}:`, error);
+        failedFrames++;
+        console.error(`[Temporal] Failed to analyze frame for segment ${range.start}-${range.end}:`, error);
         return {
           startSeconds: range.start,
           endSeconds: range.end,
@@ -182,6 +232,20 @@ export async function performTemporalAnalysis(
     segments.push(...batchResults);
   }
 
+  console.log(`[Temporal] Completed: ${successfulFrames} successful, ${failedFrames} failed`);
+
+  if (successfulFrames === 0) {
+    return {
+      segments: [],
+      overallAssessment: "UNAVAILABLE",
+      notes: [],
+      averageScore: 0,
+      aiSegmentPercentage: 0,
+      status: "failed",
+      errorReason: "프레임 추출에 실패했습니다",
+    };
+  }
+
   const totalScore = segments.reduce((sum, s) => sum + s.score, 0);
   const averageScore = Math.round(totalScore / segments.length);
   
@@ -191,11 +255,15 @@ export async function performTemporalAnalysis(
   const overallAssessment = determineOverallAssessment(segments, averageScore, aiSegmentPercentage);
   const notes = generateNotes(segments, overallAssessment);
 
+  const status = failedFrames === 0 ? "success" : "partial";
+
   return {
     segments,
     overallAssessment,
     notes,
     averageScore,
     aiSegmentPercentage,
+    status,
+    errorReason: status === "partial" ? `일부 프레임(${failedFrames}개) 추출 실패` : undefined,
   };
 }
