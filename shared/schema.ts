@@ -75,7 +75,7 @@ export interface TemporalSegment {
   label: DetectionLabel;
 }
 
-export type TemporalAssessment = "FULL_AI" | "PARTIAL_AI" | "LIKELY_REAL" | "UNAVAILABLE";
+export type TemporalAssessment = "FULL_AI" | "PARTIAL_AI" | "LIKELY_REAL" | "UNAVAILABLE" | "SKIPPED";
 
 export interface TemporalAnalysis {
   segments: TemporalSegment[];
@@ -83,6 +83,6 @@ export interface TemporalAnalysis {
   notes: string[];
   averageScore: number;
   aiSegmentPercentage: number;
-  status?: "success" | "partial" | "failed";
+  status?: "success" | "partial" | "failed" | "skipped";
   errorReason?: string;
 }

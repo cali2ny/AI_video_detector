@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Timer, AlertTriangle, CheckCircle, HelpCircle } from "lucide-react";
+import { Timer, AlertTriangle, CheckCircle, HelpCircle, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { TemporalAnalysis, TemporalSegment, DetectionLabel } from "@shared/schema";
 
@@ -79,6 +79,31 @@ export function TemporalTimeline({ temporal, durationSeconds }: TemporalTimeline
   const AssessmentIcon = assessmentInfo.icon;
   
   const totalDuration = durationSeconds || (segments.length > 0 ? segments[segments.length - 1].endSeconds : 0);
+
+  if (status === "skipped") {
+    return (
+      <div className="glass-card rounded-2xl p-6 hover:shadow-xl transition-shadow" data-testid="card-temporal-skipped">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white">
+            <Timer className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">시간대별 분석</h3>
+            <p className="text-sm text-muted-foreground">영상 구간별 AI 생성 가능성</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+          <ImageIcon className="h-5 w-5 text-primary flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-foreground">썸네일만 분석 모드</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              전체 프레임 분석을 원하시면 랜딩 페이지에서 "전체 프레임 분석" 옵션을 활성화해 주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "failed" || segments.length === 0) {
     return (

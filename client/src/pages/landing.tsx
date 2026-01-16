@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Brain, Scan, FileText, Link2, Sparkles, AlertCircle, Sun, Palette, Layers, Grid3X3, Waves, Focus, Radio, Contrast, Thermometer, ChevronDown, Users, Zap, Shield, Clock, Gauge, Fingerprint } from "lucide-react";
+import { Brain, Scan, FileText, Link2, Sparkles, AlertCircle, Sun, Palette, Layers, Grid3X3, Waves, Focus, Radio, Contrast, Thermometer, ChevronDown, Users, Zap, Shield, Clock, Gauge, Fingerprint, Image, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const detectionMetrics = [
@@ -27,6 +28,7 @@ const processSteps = [
 
 export default function Landing() {
   const [url, setUrl] = useState("");
+  const [thumbnailOnly, setThumbnailOnly] = useState(true);
   const [, navigate] = useLocation();
   const whyRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
@@ -49,7 +51,11 @@ export default function Landing() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim() && isValidYoutubeUrl(url)) {
-      navigate(`/analysis?url=${encodeURIComponent(url.trim())}`);
+      const params = new URLSearchParams({
+        url: url.trim(),
+        thumbnailOnly: thumbnailOnly.toString(),
+      });
+      navigate(`/analysis?${params.toString()}`);
     }
   };
 
@@ -160,6 +166,31 @@ export default function Landing() {
                       올바른 YouTube URL을 입력해 주세요
                     </p>
                   )}
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 border border-border/50" data-testid="container-analysis-mode">
+                  <div className="flex items-center gap-3">
+                    {thumbnailOnly ? (
+                      <Image className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Film className="h-4 w-4 text-primary" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">
+                        {thumbnailOnly ? "썸네일만 분석" : "전체 프레임 분석"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {thumbnailOnly 
+                          ? "빠른 분석 (약 3초)" 
+                          : "정밀 분석 (약 30초~1분)"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={!thumbnailOnly}
+                    onCheckedChange={(checked) => setThumbnailOnly(!checked)}
+                    data-testid="switch-analysis-mode"
+                  />
                 </div>
 
                 <Button

@@ -13,18 +13,21 @@ export default function Analysis() {
   const [, navigate] = useLocation();
   const searchString = useSearch();
   
-  const videoUrl = useMemo(() => {
+  const { videoUrl, thumbnailOnly } = useMemo(() => {
     const params = new URLSearchParams(searchString);
-    return params.get("url") || "";
+    return {
+      videoUrl: params.get("url") || "",
+      thumbnailOnly: params.get("thumbnailOnly") !== "false",
+    };
   }, [searchString]);
 
   const { isLoading, error, result, analyze, retry, reset } = useAnalyzeVideo();
 
   useEffect(() => {
     if (videoUrl && !result && !isLoading && !error) {
-      analyze(videoUrl);
+      analyze(videoUrl, { thumbnailOnly });
     }
-  }, [videoUrl]);
+  }, [videoUrl, thumbnailOnly]);
 
   const handleBack = () => {
     reset();

@@ -10,6 +10,7 @@ import { performTemporalAnalysis } from "./utils/temporal-analysis";
 
 const analyzeRequestSchema = z.object({
   videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
+  thumbnailOnly: z.boolean().optional().default(true),
 });
 
 export async function registerRoutes(
@@ -26,7 +27,7 @@ export async function registerRoutes(
         });
       }
 
-      const { videoUrl } = validation.data;
+      const { videoUrl, thumbnailOnly } = validation.data;
 
       const videoId = extractVideoId(videoUrl);
       if (!videoId) {
@@ -35,6 +36,8 @@ export async function registerRoutes(
         });
       }
 
+      console.log(`[Analyze] Starting analysis for ${videoId}, thumbnailOnly: ${thumbnailOnly}`);
+
       const [thumbnailUrl, metadata, community] = await Promise.all([
         getBestThumbnail(videoId),
         getVideoMetadata(videoId),
@@ -42,6 +45,18 @@ export async function registerRoutes(
       ]);
 
       const getTemporalAnalysis = async () => {
+        if (thumbnailOnly) {
+          console.log("[Temporal] Thumbnail-only mode, skipping temporal analysis");
+          return {
+            segments: [],
+            overallAssessment: "SKIPPED" as const,
+            notes: [],
+            averageScore: 0,
+            aiSegmentPercentage: 0,
+            status: "skipped" as const,
+            errorReason: "썸네일만 분석 모드가 선택되었습니다",
+          };
+        }
         if (!metadata.durationSeconds) {
           console.log("[Temporal] No duration available, returning failed status");
           return {
