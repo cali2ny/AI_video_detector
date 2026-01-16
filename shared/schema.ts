@@ -48,6 +48,7 @@ export interface AnalyzeVideoResponse {
   meta: AnalysisMeta;
   debug: DebugInfo;
   community?: CommunityAnalysis;
+  temporal?: TemporalAnalysis;
 }
 
 export interface HeuristicResult {
@@ -65,4 +66,21 @@ export interface HeuristicResult {
 export interface ExternalApiResult {
   score: number | null;
   available: boolean;
+}
+
+export interface TemporalSegment {
+  startSeconds: number;
+  endSeconds: number;
+  score: number;
+  label: DetectionLabel;
+}
+
+export type TemporalAssessment = "FULL_AI" | "PARTIAL_AI" | "LIKELY_REAL" | "UNAVAILABLE";
+
+export interface TemporalAnalysis {
+  segments: TemporalSegment[];
+  overallAssessment: TemporalAssessment;
+  notes: string[];
+  averageScore: number;
+  aiSegmentPercentage: number;
 }

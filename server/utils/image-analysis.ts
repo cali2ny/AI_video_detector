@@ -16,6 +16,10 @@ async function fetchAndDecodeImage(url: string): Promise<ImageStats> {
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
+  return decodeImageBuffer(buffer);
+}
+
+async function decodeImageBuffer(buffer: Buffer): Promise<ImageStats> {
   const image = sharp(buffer);
   const metadata = await image.metadata();
   const rawPixels = await image.raw().toBuffer();
@@ -311,22 +315,19 @@ function calculateColorTemperatureConsistency(stats: ImageStats): number {
   return 1 - Math.min(Math.sqrt(variance) / 50, 1);
 }
 
-export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
-  try {
-    const stats = await fetchAndDecodeImage(imageUrl);
+async function analyzeStats(stats: ImageStats): Promise<HeuristicResult> {
+  const brightnessUniformity = calculateBrightnessUniformity(stats);
+  const colorSaturation = calculateColorSaturation(stats);
+  const colorBanding = calculateColorBanding(stats);
+  const textureRepetition = calculateTextureRepetition(stats);
+  const smoothness = calculateSmoothness(stats);
+  const edgeSharpness = calculateEdgeSharpness(stats);
+  const noiseLevel = calculateNoiseLevel(stats);
+  const contrastVariance = calculateContrastVariance(stats);
+  const colorTempConsistency = calculateColorTemperatureConsistency(stats);
 
-    const brightnessUniformity = calculateBrightnessUniformity(stats);
-    const colorSaturation = calculateColorSaturation(stats);
-    const colorBanding = calculateColorBanding(stats);
-    const textureRepetition = calculateTextureRepetition(stats);
-    const smoothness = calculateSmoothness(stats);
-    const edgeSharpness = calculateEdgeSharpness(stats);
-    const noiseLevel = calculateNoiseLevel(stats);
-    const contrastVariance = calculateContrastVariance(stats);
-    const colorTempConsistency = calculateColorTemperatureConsistency(stats);
-
-    const reasons: string[] = [];
-    let score = 0;
+  const reasons: string[] = [];
+  let score = 0;
 
     if (brightnessUniformity > 0.7) {
       score += 18;
@@ -403,35 +404,55 @@ export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
       reasons.push("[색상 패턴] 색온도 일관성이 높음");
     }
 
-    if (reasons.length === 0) {
-      reasons.push("[분석 결과] 분석된 특성들이 자연스러운 범위 내에 있음");
-    }
+  if (reasons.length === 0) {
+    reasons.push("[분석 결과] 분석된 특성들이 자연스러운 범위 내에 있음");
+  }
 
-    score = Math.min(100, Math.max(0, score));
+  score = Math.min(100, Math.max(0, score));
 
-    return {
-      score,
-      reasons,
-      details: {
-        brightnessUniformity,
-        colorDistribution: colorSaturation,
-        edgeDensity: 1 - smoothness,
-        noiseLevel,
-        highFrequencyRatio: edgeSharpness,
-      },
-    };
+  return {
+    score,
+    reasons,
+    details: {
+      brightnessUniformity,
+      colorDistribution: colorSaturation,
+      edgeDensity: 1 - smoothness,
+      noiseLevel,
+      highFrequencyRatio: edgeSharpness,
+    },
+  };
+}
+
+function getDefaultErrorResult(): HeuristicResult {
+  return {
+    score: 50,
+    reasons: ["[오류] 이미지 분석 중 오류 발생, 기본 점수 적용"],
+    details: {
+      brightnessUniformity: 0.5,
+      colorDistribution: 0.5,
+      edgeDensity: 0.5,
+      noiseLevel: 0.5,
+      highFrequencyRatio: 0.5,
+    },
+  };
+}
+
+export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
+  try {
+    const stats = await fetchAndDecodeImage(imageUrl);
+    return analyzeStats(stats);
   } catch (error) {
     console.error("Image analysis error:", error);
-    return {
-      score: 50,
-      reasons: ["[오류] 이미지 분석 중 오류 발생, 기본 점수 적용"],
-      details: {
-        brightnessUniformity: 0.5,
-        colorDistribution: 0.5,
-        edgeDensity: 0.5,
-        noiseLevel: 0.5,
-        highFrequencyRatio: 0.5,
-      },
-    };
+    return getDefaultErrorResult();
+  }
+}
+
+export async function analyzeImageBuffer(buffer: Buffer): Promise<HeuristicResult> {
+  try {
+    const stats = await decodeImageBuffer(buffer);
+    return analyzeStats(stats);
+  } catch (error) {
+    console.error("Image buffer analysis error:", error);
+    return getDefaultErrorResult();
   }
 }
