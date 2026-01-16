@@ -29,9 +29,11 @@ export default function Landing() {
   const [url, setUrl] = useState("");
   const [, navigate] = useLocation();
   const howItWorksRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const faqRef = useRef<HTMLDivElement>(null);
 
-  const scrollToHowItWorks = () => {
-    howItWorksRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const isValidYoutubeUrl = (url: string) => {
@@ -65,7 +67,9 @@ export default function Landing() {
             AI Video Inspector
           </span>
           <nav className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
-            <button onClick={scrollToHowItWorks} className="hover:text-foreground transition-colors" data-testid="link-how-it-works">How it works</button>
+            <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-foreground transition-colors" data-testid="link-how-it-works">How it works</button>
+            <button onClick={() => scrollToSection(featuresRef)} className="hover:text-foreground transition-colors" data-testid="link-features">Features</button>
+            <button onClick={() => scrollToSection(faqRef)} className="hover:text-foreground transition-colors" data-testid="link-faq">FAQ</button>
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -80,30 +84,7 @@ export default function Landing() {
         </div>
       </div>
 
-      <div className="fixed top-[5.5rem] left-0 right-0 z-30 bg-background/40 backdrop-blur-sm border-b border-border/20" data-testid="banner-stats">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-center gap-6 md:gap-10 text-[11px] text-muted-foreground">
-            <div className="flex items-center gap-1.5" data-testid="stat-metrics">
-              <Gauge className="h-3 w-3 text-primary/70" />
-              <span><span className="font-semibold text-foreground/80">9개</span> 탐지 메트릭</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-1.5" data-testid="stat-speed">
-              <Clock className="h-3 w-3 text-emerald-500/70" />
-              <span><span className="font-semibold text-foreground/80">3초</span> 내 분석</span>
-            </div>
-            <div className="flex items-center gap-1.5" data-testid="stat-privacy">
-              <Shield className="h-3 w-3 text-amber-500/70" />
-              <span>데이터 <span className="font-semibold text-foreground/80">미저장</span></span>
-            </div>
-            <div className="hidden md:flex items-center gap-1.5" data-testid="stat-free">
-              <Fingerprint className="h-3 w-3 text-violet-500/70" />
-              <span><span className="font-semibold text-foreground/80">무료</span> 사용</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="relative z-10 min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 pt-36">
+      <main className="relative z-10 min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 pt-28">
         <div className="w-full max-w-xl space-y-12">
           <motion.div
             className="text-center space-y-4"
@@ -200,11 +181,11 @@ export default function Landing() {
           transition={{ delay: 0.6, duration: 0.5 }}
         >
           <button
-            onClick={scrollToHowItWorks}
+            onClick={() => scrollToSection(howItWorksRef)}
             className="flex flex-col items-center gap-2 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
             data-testid="button-scroll-down"
           >
-            <span className="text-xs">작동 원리 알아보기</span>
+            <span className="text-xs">더 알아보기</span>
             <ChevronDown className="h-5 w-5 animate-bounce" />
           </button>
         </motion.div>
@@ -323,6 +304,175 @@ export default function Landing() {
             <p className="text-xs text-muted-foreground/60">
               * YouTube API 키가 설정된 경우에만 이용 가능합니다
             </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section
+        ref={featuresRef}
+        className="relative z-10 py-24 px-4 border-t border-border/20"
+        data-testid="section-features"
+      >
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-4" data-testid="text-features-title">
+              <span className="gradient-text">주요 기능</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              AI Video Inspector가 제공하는 핵심 기능들을 소개합니다.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            data-testid="list-features-cards"
+          >
+            <div className="glass-card rounded-2xl p-6 text-center hover-elevate" data-testid="card-feature-0">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                <Clock className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">빠른 분석</h3>
+              <p className="text-sm text-muted-foreground">
+                URL 입력 후 3초 이내에 분석 결과를 확인할 수 있습니다.
+                복잡한 설정 없이 바로 사용 가능합니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-2xl p-6 text-center hover-elevate" data-testid="card-feature-1">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-500/10 flex items-center justify-center">
+                <Shield className="h-7 w-7 text-emerald-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">개인정보 보호</h3>
+              <p className="text-sm text-muted-foreground">
+                분석한 영상 URL이나 결과를 저장하지 않습니다.
+                완전히 프라이빗하게 사용할 수 있습니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-2xl p-6 text-center hover-elevate" data-testid="card-feature-2">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-violet-500/30 to-violet-500/10 flex items-center justify-center">
+                <Fingerprint className="h-7 w-7 text-violet-500" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">무료 이용</h3>
+              <p className="text-sm text-muted-foreground">
+                회원가입이나 결제 없이 무료로 이용 가능합니다.
+                횟수 제한 없이 자유롭게 분석하세요.
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="glass-card rounded-2xl p-6 flex items-start gap-5 hover-elevate" data-testid="card-feature-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="h-6 w-6 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg mb-2">상세한 분석 근거</h3>
+                <p className="text-sm text-muted-foreground">
+                  단순 점수가 아닌, 왜 그런 판정이 나왔는지 상세한 근거를 제공합니다.
+                  각 탐지 메트릭별로 어떤 특성이 감지되었는지 확인할 수 있습니다.
+                </p>
+              </div>
+            </div>
+            <div className="glass-card rounded-2xl p-6 flex items-start gap-5 hover-elevate" data-testid="card-feature-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/30 to-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                <Users className="h-6 w-6 text-cyan-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg mb-2">커뮤니티 의견</h3>
+                <p className="text-sm text-muted-foreground">
+                  YouTube 댓글에서 다른 시청자들의 의견을 분석하여 함께 보여드립니다.
+                  기술적 분석과 커뮤니티 반응을 종합적으로 판단할 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section
+        ref={faqRef}
+        className="relative z-10 py-24 px-4 border-t border-border/20"
+        data-testid="section-faq"
+      >
+        <div className="container mx-auto max-w-3xl">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-2xl md:text-3xl font-bold mb-4" data-testid="text-faq-title">
+              <span className="gradient-text">자주 묻는 질문</span>
+            </h2>
+            <p className="text-muted-foreground">
+              AI Video Inspector에 대해 궁금한 점을 확인하세요.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            data-testid="list-faq"
+          >
+            <div className="glass-card rounded-xl p-5" data-testid="card-faq-0">
+              <h3 className="font-semibold mb-2">분석 결과는 얼마나 정확한가요?</h3>
+              <p className="text-sm text-muted-foreground">
+                현재 베타 버전으로, 9가지 휴리스틱 메트릭을 사용하여 AI 생성 가능성을 추정합니다. 
+                100% 정확하지는 않으며, 중요한 판단에는 다른 정보와 함께 참고하시기 바랍니다.
+                지속적으로 알고리즘을 개선하고 있습니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-5" data-testid="card-faq-1">
+              <h3 className="font-semibold mb-2">어떤 영상을 분석할 수 있나요?</h3>
+              <p className="text-sm text-muted-foreground">
+                YouTube에 공개된 모든 영상을 분석할 수 있습니다. 
+                일반 영상, Shorts, 비공개 영상(URL로 접근 가능한 경우)도 분석 가능합니다.
+                현재 YouTube 외 다른 플랫폼은 지원하지 않습니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-5" data-testid="card-faq-2">
+              <h3 className="font-semibold mb-2">분석 데이터는 어떻게 처리되나요?</h3>
+              <p className="text-sm text-muted-foreground">
+                입력한 URL이나 분석 결과를 서버에 저장하지 않습니다. 
+                분석은 실시간으로 이루어지며, 세션 종료 후 모든 데이터는 삭제됩니다.
+                안심하고 사용하세요.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-5" data-testid="card-faq-3">
+              <h3 className="font-semibold mb-2">커뮤니티 분석은 어떻게 작동하나요?</h3>
+              <p className="text-sm text-muted-foreground">
+                YouTube API를 통해 영상의 상위 댓글을 가져와 키워드 분석을 수행합니다.
+                "AI로 만든 것 같다", "가짜", "fake" 등의 키워드를 감지하여 
+                시청자들의 의견을 AI 의심/실제 영상/중립으로 분류합니다.
+              </p>
+            </div>
+            <div className="glass-card rounded-xl p-5" data-testid="card-faq-4">
+              <h3 className="font-semibold mb-2">"UNCLEAR" 판정은 무엇인가요?</h3>
+              <p className="text-sm text-muted-foreground">
+                점수가 40~69% 사이인 경우 "판단 불확실"로 표시됩니다.
+                이는 AI 생성과 실제 촬영 영상 모두의 특성이 혼재되어 있거나,
+                판단하기 어려운 경우를 의미합니다. 다른 정보와 함께 종합적으로 판단하세요.
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>
