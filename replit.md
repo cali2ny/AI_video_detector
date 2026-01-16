@@ -1,7 +1,7 @@
 # AI Video Detector - YouTube AI 생성 영상 탐지 서비스
 
 ## Overview
-YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분석하여 AI 생성 가능성을 점수로 보여주는 웹 서비스입니다.
+YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분석하여 AI 생성 가능성을 점수로 보여주는 웹 서비스입니다. 추가로 YouTube 댓글을 분석하여 시청자들의 의견도 함께 제공합니다.
 
 ## Project Architecture
 
@@ -22,7 +22,8 @@ YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분�
 
 ### Key Components
 - `components/score-gauge.tsx` - SVG 그라디언트 원형 점수 게이지
-- `components/analysis-result.tsx` - 분석 결과 카드 레이아웃
+- `components/analysis-result.tsx` - 분석 결과 카드 레이아웃 (3열 그리드)
+- `components/community-opinions.tsx` - 시청자 의견 카드 (댓글 분석 결과)
 - `components/loading-state.tsx` - 단계별 애니메이션 로딩
 - `components/error-state.tsx` - 에러 상태
 - `components/theme-toggle.tsx` - 다크/라이트 모드 토글
@@ -44,13 +45,17 @@ YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분�
   2. **External API Layer** (`server/utils/external-api.ts`)
      - 환경변수: `AI_DETECT_API_BASE_URL`, `AI_DETECT_API_KEY`
      - 둘 다 설정시에만 외부 딥러닝 API 호출
-  3. **Score Combiner** (`server/utils/score-combiner.ts`)
-     - 휴리스틱만: `finalScore = heuristicScore`
-     - 외부 API 포함: `finalScore = heuristicScore * 0.3 + externalScore * 0.7`
+  3. **Community Layer** (`server/utils/comments.ts`)
+     - YouTube Data API v3로 상위 50개 댓글 수집
+     - 키워드 기반 AI/REAL/NEUTRAL 분류
+     - 커뮤니티 보정: aiVotes >= 30% → +10점, aiVotes <= 5% → -5점
+  4. **Score Combiner** (`server/utils/score-combiner.ts`)
+     - 휴리스틱만: `finalScore = heuristicScore + communityAdjustment`
+     - 외부 API 포함: `finalScore = heuristicScore * 0.3 + externalScore * 0.7 + communityAdjustment`
 
 ### Shared Types
 - **Location**: `shared/schema.ts`
-- Key types: `AnalyzeVideoRequest`, `AnalyzeVideoResponse`, `HeuristicResult`
+- Key types: `AnalyzeVideoRequest`, `AnalyzeVideoResponse`, `HeuristicResult`, `CommunityAnalysis`
 
 ## API Endpoints
 
@@ -83,7 +88,20 @@ YouTube 영상 분석을 수행합니다.
   "debug": {
     "heuristicScore": 45,
     "externalApiScore": null,
-    "finalScore": 45
+    "communityAdjustment": 10,
+    "finalScore": 55
+  },
+  "community": {
+    "totalComments": 50,
+    "aiVotes": 20,
+    "realVotes": 5,
+    "neutralVotes": 25,
+    "topAiComments": [
+      { "author": "user1", "text": "이건 AI로 만든 거 아니야?", "likeCount": 42 }
+    ],
+    "topRealComments": [
+      { "author": "user2", "text": "실제 촬영 영상이네요", "likeCount": 15 }
+    ]
   }
 }
 ```
@@ -96,7 +114,7 @@ YouTube 영상 분석을 수행합니다.
 ## Environment Variables (Optional)
 - `AI_DETECT_API_BASE_URL` - 외부 딥러닝 탐지 API URL
 - `AI_DETECT_API_KEY` - 외부 API 인증 키
-- `YT_API_KEY` - YouTube Data API v3 키 (채널명, 영상 길이 가져오기용)
+- `YT_API_KEY` - YouTube Data API v3 키 (채널명, 영상 길이, 댓글 가져오기용)
 
 ## Development
 ```bash
