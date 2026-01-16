@@ -97,68 +97,68 @@
 
 /* DARK MODE - Premium Dark Navy SaaS Theme */
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255,255,255, .12);
+  --badge-outline: rgba(255,255,255, .08);
 
-  --opaque-button-border-intensity: 9;
+  --opaque-button-border-intensity: 10;
 
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255,255,255, .05);
+  --elevate-2: rgba(255,255,255, .10);
 
-  --background: 222 47% 5%;
+  --background: 225 35% 8%;
   --foreground: 210 40% 98%;
 
-  --border: 217 33% 15%;
+  --border: 220 25% 18%;
 
-  --card: 222 47% 8%;
+  --card: 225 32% 11%;
   --card-foreground: 210 40% 98%;
-  --card-border: 217 33% 18%;
+  --card-border: 220 25% 20%;
 
-  --sidebar: 222 47% 6%;
+  --sidebar: 225 35% 9%;
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 217 33% 15%;
-  --sidebar-primary: 217 91% 60%;
+  --sidebar-border: 220 25% 18%;
+  --sidebar-primary: 213 94% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 33% 15%;
+  --sidebar-accent: 220 25% 16%;
   --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 217 91% 60%;
+  --sidebar-ring: 213 94% 58%;
 
-  --popover: 222 47% 8%;
+  --popover: 225 32% 11%;
   --popover-foreground: 210 40% 98%;
-  --popover-border: 217 33% 18%;
+  --popover-border: 220 25% 20%;
 
-  --primary: 217 91% 60%;
+  --primary: 213 94% 58%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 33% 15%;
+  --secondary: 220 25% 16%;
   --secondary-foreground: 210 40% 98%;
 
-  --muted: 217 33% 15%;
-  --muted-foreground: 215 20% 55%;
+  --muted: 220 20% 18%;
+  --muted-foreground: 215 20% 60%;
 
-  --accent: 217 33% 15%;
+  --accent: 220 25% 16%;
   --accent-foreground: 210 40% 98%;
 
-  --destructive: 0 72% 51%;
+  --destructive: 0 75% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 217 33% 18%;
-  --ring: 217 91% 60%;
+  --input: 220 25% 20%;
+  --ring: 213 94% 58%;
   
-  --chart-1: 217 91% 60%;
-  --chart-2: 142 71% 45%;
-  --chart-3: 38 92% 50%;
-  --chart-4: 0 72% 51%;
-  --chart-5: 262 83% 58%;
+  --chart-1: 213 94% 58%;
+  --chart-2: 158 64% 52%;
+  --chart-3: 43 96% 56%;
+  --chart-4: 0 75% 55%;
+  --chart-5: 270 76% 62%;
 
-  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.20);
-  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
-  --shadow-sm: 0px 2px 4px 0px hsl(0 0% 0% / 0.25), 0px 1px 2px -1px hsl(0 0% 0% / 0.25);
-  --shadow: 0px 4px 6px -1px hsl(0 0% 0% / 0.30), 0px 2px 4px -2px hsl(0 0% 0% / 0.25);
-  --shadow-md: 0px 6px 10px -2px hsl(0 0% 0% / 0.30), 0px 3px 6px -3px hsl(0 0% 0% / 0.30);
-  --shadow-lg: 0px 10px 15px -3px hsl(0 0% 0% / 0.35), 0px 4px 6px -4px hsl(0 0% 0% / 0.35);
-  --shadow-xl: 0px 20px 25px -5px hsl(0 0% 0% / 0.35), 0px 8px 10px -6px hsl(0 0% 0% / 0.35);
-  --shadow-2xl: 0px 25px 50px -12px hsl(0 0% 0% / 0.55);
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.25);
+  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.30);
+  --shadow-sm: 0px 2px 4px 0px hsl(0 0% 0% / 0.30), 0px 1px 2px -1px hsl(0 0% 0% / 0.30);
+  --shadow: 0px 4px 6px -1px hsl(0 0% 0% / 0.35), 0px 2px 4px -2px hsl(0 0% 0% / 0.30);
+  --shadow-md: 0px 6px 10px -2px hsl(0 0% 0% / 0.35), 0px 3px 6px -3px hsl(0 0% 0% / 0.35);
+  --shadow-lg: 0px 10px 15px -3px hsl(0 0% 0% / 0.40), 0px 4px 6px -4px hsl(0 0% 0% / 0.40);
+  --shadow-xl: 0px 20px 25px -5px hsl(0 0% 0% / 0.40), 0px 8px 10px -6px hsl(0 0% 0% / 0.40);
+  --shadow-2xl: 0px 25px 50px -12px hsl(0 0% 0% / 0.60);
 }
 
 @layer base {
@@ -241,13 +241,13 @@
     inset: -1px;
   }
 
-  /* Premium dark background with gradient */
+  /* Premium background with gradient - Light mode default */
   .premium-bg {
     background: linear-gradient(
       180deg,
-      hsl(222 47% 5%) 0%,
-      hsl(222 47% 3%) 50%,
-      hsl(220 50% 2%) 100%
+      hsl(220 25% 98%) 0%,
+      hsl(220 20% 96%) 50%,
+      hsl(225 25% 94%) 100%
     );
     min-height: 100vh;
     position: relative;
@@ -258,28 +258,29 @@
     position: fixed;
     inset: 0;
     background: 
-      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(217 91% 60% / 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 30% 80%, hsl(262 83% 58% / 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 70% 70%, hsl(199 89% 48% / 0.05) 0%, transparent 40%);
+      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(213 94% 58% / 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 30% 80%, hsl(270 76% 62% / 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 70% 70%, hsl(190 90% 50% / 0.04) 0%, transparent 40%);
     pointer-events: none;
     z-index: 0;
   }
 
-  /* Light mode premium background */
-  :root .premium-bg {
+  /* Dark mode premium background */
+  .dark .premium-bg {
     background: linear-gradient(
       180deg,
-      hsl(220 20% 97%) 0%,
-      hsl(220 20% 95%) 50%,
-      hsl(220 25% 93%) 100%
+      hsl(225 35% 8%) 0%,
+      hsl(225 38% 6%) 50%,
+      hsl(228 40% 4%) 100%
     );
   }
 
-  :root .premium-bg::before {
+  .dark .premium-bg::before {
     background: 
-      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(217 91% 60% / 0.06) 0%, transparent 50%),
-      radial-gradient(circle at 30% 80%, hsl(262 83% 58% / 0.03) 0%, transparent 40%),
-      radial-gradient(circle at 70% 70%, hsl(199 89% 48% / 0.03) 0%, transparent 40%);
+      radial-gradient(ellipse 100% 60% at 50% -10%, hsl(213 94% 58% / 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 20% 90%, hsl(270 76% 62% / 0.08) 0%, transparent 45%),
+      radial-gradient(circle at 80% 80%, hsl(190 90% 50% / 0.06) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, hsl(225 35% 12% / 0.5) 0%, transparent 80%);
   }
 
   /* Spotlight effect behind cards */
@@ -297,19 +298,19 @@
     height: 200%;
     background: radial-gradient(
       ellipse at center,
-      hsl(217 91% 60% / 0.15) 0%,
-      hsl(217 91% 60% / 0.05) 30%,
+      hsl(213 94% 58% / 0.08) 0%,
+      hsl(213 94% 58% / 0.03) 30%,
       transparent 60%
     );
     pointer-events: none;
     z-index: -1;
   }
 
-  :root .spotlight::before {
+  .dark .spotlight::before {
     background: radial-gradient(
       ellipse at center,
-      hsl(217 91% 60% / 0.1) 0%,
-      hsl(217 91% 60% / 0.03) 30%,
+      hsl(213 94% 58% / 0.18) 0%,
+      hsl(213 94% 58% / 0.06) 30%,
       transparent 60%
     );
   }
@@ -344,33 +345,37 @@
 
   /* Glass morphism card */
   .glass-card {
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--border) / 0.5);
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.6);
   }
 
   .dark .glass-card {
-    background: hsl(var(--card) / 0.4);
-    border: 1px solid hsl(var(--border) / 0.3);
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.4);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 
   /* Premium input card with glow */
   .input-card-glow {
     position: relative;
-    background: hsl(var(--card) / 0.9);
-    border: 1px solid hsl(var(--border) / 0.6);
+    background: hsl(var(--card) / 0.95);
+    border: 1px solid hsl(var(--border) / 0.7);
     box-shadow: 
-      0 0 0 1px hsl(217 91% 60% / 0.1),
-      0 4px 24px -4px hsl(0 0% 0% / 0.3),
-      0 0 60px -10px hsl(217 91% 60% / 0.2);
+      0 0 0 1px hsl(213 94% 58% / 0.08),
+      0 4px 20px -4px hsl(0 0% 0% / 0.15),
+      0 0 50px -10px hsl(213 94% 58% / 0.12);
   }
 
   .dark .input-card-glow {
-    background: hsl(var(--card) / 0.7);
+    background: hsl(var(--card) / 0.8);
+    border: 1px solid hsl(var(--border) / 0.5);
     box-shadow: 
-      0 0 0 1px hsl(217 91% 60% / 0.15),
-      0 4px 24px -4px hsl(0 0% 0% / 0.5),
-      0 0 80px -10px hsl(217 91% 60% / 0.25);
+      0 0 0 1px hsl(213 94% 58% / 0.2),
+      0 4px 30px -4px hsl(0 0% 0% / 0.6),
+      0 0 100px -10px hsl(213 94% 58% / 0.3),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   }
 
   /* Skeleton shimmer animation */
@@ -408,21 +413,38 @@
     );
   }
 
-  /* Glow effects */
+  /* Glow effects - Light mode */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(217 91% 60% / 0.3), 0 0 40px hsl(217 91% 60% / 0.1);
+    box-shadow: 0 0 15px hsl(213 94% 58% / 0.2), 0 0 30px hsl(213 94% 58% / 0.08);
   }
 
   .glow-success {
-    box-shadow: 0 0 20px hsl(142 71% 45% / 0.3), 0 0 40px hsl(142 71% 45% / 0.1);
+    box-shadow: 0 0 15px hsl(158 64% 52% / 0.2), 0 0 30px hsl(158 64% 52% / 0.08);
   }
 
   .glow-warning {
-    box-shadow: 0 0 20px hsl(38 92% 50% / 0.3), 0 0 40px hsl(38 92% 50% / 0.1);
+    box-shadow: 0 0 15px hsl(43 96% 56% / 0.2), 0 0 30px hsl(43 96% 56% / 0.08);
   }
 
   .glow-danger {
-    box-shadow: 0 0 20px hsl(0 84% 60% / 0.3), 0 0 40px hsl(0 84% 60% / 0.1);
+    box-shadow: 0 0 15px hsl(0 75% 55% / 0.2), 0 0 30px hsl(0 75% 55% / 0.08);
+  }
+
+  /* Glow effects - Dark mode (more intense) */
+  .dark .glow-primary {
+    box-shadow: 0 0 25px hsl(213 94% 58% / 0.35), 0 0 50px hsl(213 94% 58% / 0.15);
+  }
+
+  .dark .glow-success {
+    box-shadow: 0 0 25px hsl(158 64% 52% / 0.35), 0 0 50px hsl(158 64% 52% / 0.15);
+  }
+
+  .dark .glow-warning {
+    box-shadow: 0 0 25px hsl(43 96% 56% / 0.35), 0 0 50px hsl(43 96% 56% / 0.15);
+  }
+
+  .dark .glow-danger {
+    box-shadow: 0 0 25px hsl(0 75% 55% / 0.35), 0 0 50px hsl(0 75% 55% / 0.15);
   }
 
   /* Pulse animation */
