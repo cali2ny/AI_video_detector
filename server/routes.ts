@@ -1,16 +1,59 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { z } from "zod";
+import { extractVideoId, getBestThumbnail } from "./utils/youtube";
+import { analyzeImage } from "./utils/image-analysis";
+import { callExternalDetectionApi } from "./utils/external-api";
+import { combineScores } from "./utils/score-combiner";
+
+const analyzeRequestSchema = z.object({
+  videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
+});
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  app.post("/api/analyze", async (req, res) => {
+    try {
+      const validation = analyzeRequestSchema.safeParse(req.body);
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+      if (!validation.success) {
+        return res.status(400).json({
+          error: validation.error.errors[0]?.message || "잘못된 요청입니다",
+        });
+      }
+
+      const { videoUrl } = validation.data;
+
+      const videoId = extractVideoId(videoUrl);
+      if (!videoId) {
+        return res.status(400).json({
+          error: "유효한 YouTube URL이 아닙니다",
+        });
+      }
+
+      const thumbnailUrl = await getBestThumbnail(videoId);
+
+      const heuristicResult = await analyzeImage(thumbnailUrl);
+
+      const externalResult = await callExternalDetectionApi([thumbnailUrl]);
+
+      const response = combineScores({
+        heuristicScore: heuristicResult.score,
+        heuristicReasons: heuristicResult.reasons,
+        externalScore: externalResult.score,
+        thumbnailUrl,
+      });
+
+      return res.json(response);
+    } catch (error) {
+      console.error("Analysis error:", error);
+      return res.status(500).json({
+        error: "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
+      });
+    }
+  });
 
   return httpServer;
 }

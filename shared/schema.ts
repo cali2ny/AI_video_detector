@@ -1,18 +1,40 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const analyzeVideoRequestSchema = z.object({
+  videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export type AnalyzeVideoRequest = z.infer<typeof analyzeVideoRequestSchema>;
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type DetectionLabel = "LIKELY_AI" | "UNCLEAR" | "LIKELY_HUMAN";
+
+export interface AnalysisMeta {
+  source: "heuristic_only" | "heuristic_plus_external";
+  thumbnailUrl: string;
+  analyzedAt: string;
+}
+
+export interface AnalyzeVideoResponse {
+  score: number;
+  label: DetectionLabel;
+  reasons: string[];
+  tips: string[];
+  meta: AnalysisMeta;
+}
+
+export interface HeuristicResult {
+  score: number;
+  reasons: string[];
+  details: {
+    brightnessUniformity: number;
+    colorDistribution: number;
+    edgeDensity: number;
+    noiseLevel: number;
+    highFrequencyRatio: number;
+  };
+}
+
+export interface ExternalApiResult {
+  score: number | null;
+  available: boolean;
+}
