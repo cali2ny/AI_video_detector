@@ -28,6 +28,7 @@ const processSteps = [
 export default function Landing() {
   const [url, setUrl] = useState("");
   const [, navigate] = useLocation();
+  const whyRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const faqRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export default function Landing() {
             AI Video Inspector
           </span>
           <nav className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
+            <button onClick={() => scrollToSection(whyRef)} className="hover:text-foreground transition-colors" data-testid="link-why">Why</button>
             <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-foreground transition-colors" data-testid="link-how-it-works">How it works</button>
             <button onClick={() => scrollToSection(featuresRef)} className="hover:text-foreground transition-colors" data-testid="link-features">Features</button>
             <button onClick={() => scrollToSection(faqRef)} className="hover:text-foreground transition-colors" data-testid="link-faq">FAQ</button>
@@ -192,6 +194,7 @@ export default function Landing() {
       </main>
 
       <section
+        ref={whyRef}
         className="relative z-10 py-24 px-4 border-t border-border/20"
         data-testid="section-why"
       >
