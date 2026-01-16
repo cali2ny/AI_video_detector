@@ -9,14 +9,19 @@ YouTube 영상 URL을 입력하면 해당 영상의 썸네일/프레임을 분�
 - **Location**: `client/src/`
 - **Styling**: Tailwind CSS with custom design tokens
 - **State Management**: React hooks + TanStack Query
+- **Animation**: Framer Motion for smooth transitions
 - **Key Components**:
-  - `components/header.tsx` - 앱 헤더
-  - `components/url-input-form.tsx` - YouTube URL 입력 폼
-  - `components/score-gauge.tsx` - 점수 게이지 UI
-  - `components/analysis-result.tsx` - 분석 결과 표시
-  - `components/loading-state.tsx` - 로딩 상태
+  - `components/header.tsx` - 프리미엄 그라디언트 헤더
+  - `components/url-input-form.tsx` - YouTube URL 입력 폼 (글래스모피즘 스타일)
+  - `components/score-gauge.tsx` - SVG 그라디언트 원형 점수 게이지
+  - `components/analysis-result.tsx` - 분석 결과 표시 (프리미엄 카드 레이아웃)
+  - `components/loading-state.tsx` - 애니메이션 로딩 상태 + 스켈레톤
   - `components/error-state.tsx` - 에러 상태
-  - `components/empty-state.tsx` - 초기 빈 상태
+  - `components/empty-state.tsx` - 기능 소개 카드 포함 초기 상태
+- **Reusable UI Components**:
+  - `components/ui/section-header.tsx` - 그라디언트 텍스트 섹션 헤더
+  - `components/ui/premium-card.tsx` - 글래스/보더 변형 프리미엄 카드
+  - `components/ui/skeleton-card.tsx` - 쉬머 애니메이션 스켈레톤
 
 ### Backend (Express + TypeScript)
 - **Location**: `server/`
@@ -81,7 +86,19 @@ npm install
 npm run dev
 ```
 
-## Design System
-- Primary color: Blue (217 91% 60%)
-- Theme toggle: Light/Dark mode 지원
-- Font: Inter (sans-serif)
+## Design System (Premium SaaS Theme)
+- **Background**: Dark navy (222 47% 7%) / Light (222 47% 98%)
+- **Primary**: Blue (217 91% 60%)
+- **Accent Gradients**: Blue → Cyan, Violet → Purple, Emerald → Green
+- **Card Styles**: Glass morphism with backdrop blur, premium bordered
+- **Effects**: Glow effects (primary/success/warning/danger)
+- **Animation**: Skeleton shimmer, pulse glow, gradient score ring
+- **Font**: Inter (sans-serif)
+- **Icons**: Lucide React (no emojis)
+
+### CSS Utilities (index.css)
+- `gradient-primary` / `gradient-accent` / `gradient-success` / etc.
+- `gradient-text` - 그라디언트 텍스트
+- `glass-card` - 글래스모피즘 카드
+- `skeleton-shimmer` - 스켈레톤 로딩 애니메이션
+- `glow-primary` / `glow-success` / etc. - 글로우 이펙트
