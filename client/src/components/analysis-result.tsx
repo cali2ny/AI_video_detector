@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScoreGauge } from "./score-gauge";
+import { CommunityOpinions } from "./community-opinions";
 import type { AnalyzeVideoResponse } from "@shared/schema";
 
 interface AnalysisResultProps {
@@ -26,6 +27,7 @@ const CATEGORY_TAGS: Record<string, string> = {
   "고주파": "주파수 분석",
   "딥러닝": "딥러닝 결과",
   "외부": "딥러닝 결과",
+  "커뮤니티": "시청자 의견",
 };
 
 function getCategoryTag(reason: string): string {
@@ -38,7 +40,7 @@ function getCategoryTag(reason: string): string {
 }
 
 export function AnalysisResult({ result }: AnalysisResultProps) {
-  const { score, label, reasons, tips, meta, debug } = result;
+  const { score, label, reasons, tips, meta, debug, community } = result;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -138,7 +140,7 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
         </div>
       </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <motion.div variants={itemVariants}>
           <div className="glass-card rounded-2xl p-6 h-full hover:shadow-xl transition-shadow" data-testid="card-reasons">
             <div className="flex items-start gap-3 mb-5">
@@ -150,27 +152,27 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
                 <p className="text-sm text-muted-foreground">탐지된 주요 지표</p>
               </div>
             </div>
-            <ul className="space-y-4" data-testid="list-reasons">
+            <ul className="space-y-3" data-testid="list-reasons">
               {reasons.map((reason, index) => {
                 const tag = getCategoryTag(reason);
                 return (
                   <motion.li
                     key={index}
-                    className="flex items-start gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50"
+                    className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                     data-testid={`text-reason-${index}`}
                   >
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full gradient-primary text-white flex items-center justify-center text-xs font-bold mt-0.5">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full gradient-primary text-white flex items-center justify-center text-xs font-bold mt-0.5">
                       {index + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-xs mb-2">
+                      <Badge variant="secondary" className="text-xs mb-1.5">
                         {tag}
                       </Badge>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {reason}
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {reason.replace(/^\[[^\]]+\]\s*/, '')}
                       </p>
                     </div>
                   </motion.li>
@@ -178,6 +180,10 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
               })}
             </ul>
           </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <CommunityOpinions community={community} />
         </motion.div>
 
         <motion.div variants={itemVariants}>
@@ -191,18 +197,18 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
                 <p className="text-sm text-muted-foreground">추천 다음 단계</p>
               </div>
             </div>
-            <ul className="space-y-3" data-testid="list-tips">
+            <ul className="space-y-2" data-testid="list-tips">
               {tips.map((tip, index) => (
                 <motion.li
                   key={index}
-                  className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors border border-amber-500/10 hover:border-amber-500/20 cursor-default"
+                  className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors border border-amber-500/10 hover:border-amber-500/20 cursor-default"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + index * 0.1 }}
                   data-testid={`text-tip-${index}`}
                 >
-                  <ChevronRight className="flex-shrink-0 w-5 h-5 text-amber-500 mt-0.5" />
-                  <span className="text-sm text-muted-foreground leading-relaxed">
+                  <ChevronRight className="flex-shrink-0 w-4 h-4 text-amber-500 mt-0.5" />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
                     {tip}
                   </span>
                 </motion.li>
@@ -230,6 +236,7 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
                 <Badge variant="outline" className="flex items-center gap-1.5 px-3 py-1" data-testid="badge-debug">
                   휴리스틱: {debug.heuristicScore}%
                   {debug.externalApiScore !== null && ` / 외부 API: ${debug.externalApiScore}%`}
+                  {debug.communityAdjustment !== 0 && ` / 커뮤니티: ${debug.communityAdjustment > 0 ? '+' : ''}${debug.communityAdjustment}`}
                 </Badge>
               )}
               <Badge variant="secondary" className="flex items-center gap-1.5 px-3 py-1" data-testid="badge-timestamp">
