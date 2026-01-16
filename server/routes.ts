@@ -1,7 +1,7 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
+import type { Server } from "http";
 import { z } from "zod";
-import { extractVideoId, getBestThumbnail } from "./utils/youtube";
+import { extractVideoId, getBestThumbnail, getVideoMetadata } from "./utils/youtube";
 import { analyzeImage } from "./utils/image-analysis";
 import { callExternalDetectionApi } from "./utils/external-api";
 import { combineScores } from "./utils/score-combiner";
@@ -33,7 +33,10 @@ export async function registerRoutes(
         });
       }
 
-      const thumbnailUrl = await getBestThumbnail(videoId);
+      const [thumbnailUrl, metadata] = await Promise.all([
+        getBestThumbnail(videoId),
+        getVideoMetadata(videoId),
+      ]);
 
       const heuristicResult = await analyzeImage(thumbnailUrl);
 
@@ -44,6 +47,9 @@ export async function registerRoutes(
         heuristicReasons: heuristicResult.reasons,
         externalScore: externalResult.score,
         thumbnailUrl,
+        videoId,
+        channelTitle: metadata.channelTitle,
+        durationSeconds: metadata.durationSeconds,
       });
 
       return res.json(response);

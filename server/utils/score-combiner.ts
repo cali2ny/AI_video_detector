@@ -1,10 +1,13 @@
-import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta } from "@shared/schema";
+import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta, DebugInfo } from "@shared/schema";
 
 interface CombineScoreParams {
   heuristicScore: number;
   heuristicReasons: string[];
   externalScore: number | null;
   thumbnailUrl: string;
+  videoId: string;
+  channelTitle?: string;
+  durationSeconds?: number;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -43,7 +46,7 @@ function getTips(label: DetectionLabel): string[] {
 }
 
 export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse {
-  const { heuristicScore, heuristicReasons, externalScore, thumbnailUrl } = params;
+  const { heuristicScore, heuristicReasons, externalScore, thumbnailUrl, videoId, channelTitle, durationSeconds } = params;
 
   let finalScore: number;
   let source: AnalysisMeta["source"];
@@ -64,8 +67,14 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
   const reasons = [...heuristicReasons];
 
   if (externalScore !== null) {
-    reasons.push(`외부 딥러닝 API 분석 점수: ${externalScore}%`);
+    reasons.push(`딥러닝 기반 탐지 모델이 이 영상을 약 ${externalScore}% 확률로 AI 생성으로 분류했습니다.`);
   }
+
+  const debug: DebugInfo = {
+    heuristicScore: Math.round(heuristicScore),
+    externalApiScore: externalScore !== null ? Math.round(externalScore) : null,
+    finalScore,
+  };
 
   return {
     score: finalScore,
@@ -73,9 +82,14 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
     reasons,
     tips,
     meta: {
+      sourceType: "YOUTUBE_URL",
       source,
+      videoId,
       thumbnailUrl,
+      channelTitle,
+      durationSeconds,
       analyzedAt: new Date().toISOString(),
     },
+    debug,
   };
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Brain, Scan, FileText, Link2, Loader2, Sparkles } from "lucide-react";
+import { Brain, Scan, FileText, Link2, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,23 +28,37 @@ export default function Landing() {
 
   const showValidation = url.length > 0 && !isValidYoutubeUrl(url);
   const features = [
-    { icon: Brain, text: "Deep Learning Detection" },
-    { icon: Scan, text: "Frame-by-Frame Analysis" },
-    { icon: FileText, text: "Explainable Results" },
+    { icon: Brain, text: "딥러닝 기반 탐지" },
+    { icon: Scan, text: "화면/프레임 분석" },
+    { icon: FileText, text: "설명 가능한 결과" },
   ];
 
   return (
     <div className="premium-bg noise-overlay text-foreground" data-testid="page-landing">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/20 backdrop-blur-md border-b border-border/30" data-testid="container-header">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <span className="text-sm font-medium text-foreground/80" data-testid="text-logo">
-            AI Video Detector
+          <span className="text-sm font-semibold text-foreground/90" data-testid="text-logo">
+            AI Video Inspector
           </span>
-          <ThemeToggle />
+          <nav className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
+            <a href="#" className="hover:text-foreground transition-colors" data-testid="link-how-it-works">How it works</a>
+            <a href="#" className="hover:text-foreground transition-colors" data-testid="link-docs">Docs</a>
+            <a href="#" className="hover:text-foreground transition-colors" data-testid="link-sign-in">Sign in</a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
-      <main className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-14">
+      <div className="fixed top-14 left-0 right-0 z-40 bg-primary/10 border-b border-primary/20" data-testid="banner-beta">
+        <div className="container mx-auto px-4 py-2 flex items-center justify-center gap-2 text-xs text-primary">
+          <AlertCircle className="h-3.5 w-3.5" />
+          <span>Beta · 분석 결과는 확률적 추정이며 100% 정확하지 않을 수 있습니다.</span>
+        </div>
+      </div>
+
+      <main className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-28">
         <div className="w-full max-w-xl space-y-12">
           <motion.div
             className="text-center space-y-4"
@@ -59,7 +73,7 @@ export default function Landing() {
               <span className="text-foreground">한 번에 확인하세요.</span>
             </h1>
             <p className="text-muted-foreground text-base md:text-lg max-w-md mx-auto" data-testid="text-subheadline">
-              YouTube 링크를 입력하면 딥러닝 기반 탐지 엔진이
+              YouTube 링크를 입력하면 화면 기반 딥러닝 탐지기로
               <br className="hidden sm:block" />
               AI 생성 가능성을 분석해 드립니다.
             </p>
@@ -136,7 +150,7 @@ export default function Landing() {
 
         <footer className="absolute bottom-0 left-0 right-0 py-6 text-center" data-testid="container-footer">
           <p className="text-xs text-muted-foreground/60" data-testid="text-disclaimer">
-            This tool is for reference only. Final judgment is at the user's discretion.
+            이 분석 결과는 통계적 추정치이며, 100% 정확하지 않을 수 있습니다. 중요한 판단에는 다른 정보와 출처를 함께 참고해 주세요.
           </p>
         </footer>
       </main>

@@ -72,9 +72,18 @@ YouTube 영상 분석을 수행합니다.
   "reasons": ["분석 근거 1", "분석 근거 2"],
   "tips": ["확인 팁 1", "확인 팁 2"],
   "meta": {
+    "sourceType": "YOUTUBE_URL",
     "source": "heuristic_only",
+    "videoId": "dQw4w9WgXcQ",
     "thumbnailUrl": "https://img.youtube.com/vi/xxx/maxresdefault.jpg",
+    "channelTitle": "채널명",
+    "durationSeconds": 212,
     "analyzedAt": "2024-01-01T00:00:00.000Z"
+  },
+  "debug": {
+    "heuristicScore": 45,
+    "externalApiScore": null,
+    "finalScore": 45
   }
 }
 ```
@@ -87,6 +96,7 @@ YouTube 영상 분석을 수행합니다.
 ## Environment Variables (Optional)
 - `AI_DETECT_API_BASE_URL` - 외부 딥러닝 탐지 API URL
 - `AI_DETECT_API_KEY` - 외부 API 인증 키
+- `YT_API_KEY` - YouTube Data API v3 키 (채널명, 영상 길이 가져오기용)
 
 ## Development
 ```bash

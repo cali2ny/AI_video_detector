@@ -29,9 +29,9 @@ export function ScoreGauge({ score, label }: ScoreGaugeProps) {
   const getLabelText = () => {
     switch (label) {
       case "LIKELY_AI":
-        return "High AI Probability";
+        return "Likely AI";
       case "UNCLEAR":
-        return "Uncertain Result";
+        return "Unclear";
       case "LIKELY_HUMAN":
         return "Likely Authentic";
     }
@@ -52,10 +52,10 @@ export function ScoreGauge({ score, label }: ScoreGaugeProps) {
   const progress = (score / 100) * circumference * 0.75;
 
   return (
-    <div className="flex flex-col items-center gap-6" data-testid="container-score-gauge">
+    <div className="flex flex-col items-center gap-4" data-testid="container-score-gauge">
       <div className="relative">
         <svg
-          className="w-56 h-56 -rotate-[135deg]"
+          className="w-48 h-48 -rotate-[135deg]"
           viewBox="0 0 100 100"
         >
           <circle
@@ -99,12 +99,13 @@ export function ScoreGauge({ score, label }: ScoreGaugeProps) {
           transition={{ delay: 0.5, duration: 0.5 }}
         >
           <span
-            className={`text-6xl font-bold bg-gradient-to-r ${getGradient()} bg-clip-text text-transparent`}
+            className={`text-5xl font-bold bg-gradient-to-r ${getGradient()} bg-clip-text text-transparent`}
             data-testid="text-score-value"
           >
             {score}
           </span>
-          <span className="text-lg text-muted-foreground font-medium">percent</span>
+          <span className="text-sm text-muted-foreground font-medium">percent</span>
+          <span className="text-xs text-muted-foreground mt-1">AI 생성일 가능성</span>
         </motion.div>
       </div>
 
