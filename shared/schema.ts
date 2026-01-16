@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const analyzeVideoRequestSchema = z.object({
   videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
+  thumbnailOnly: z.boolean().optional().default(true),
 });
 
 export type AnalyzeVideoRequest = z.infer<typeof analyzeVideoRequestSchema>;

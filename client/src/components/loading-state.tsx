@@ -51,7 +51,7 @@ export function LoadingState() {
               transition={{ delay: 0.2 }}
               data-testid="text-loading-subtitle"
             >
-              보통 5~10초 정도 소요됩니다
+              썸네일 분석은 약 3초, 전체 프레임 분석은 30초~1분 소요됩니다
             </motion.p>
           </div>
 

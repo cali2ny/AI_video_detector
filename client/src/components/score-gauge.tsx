@@ -29,11 +29,11 @@ export function ScoreGauge({ score, label }: ScoreGaugeProps) {
   const getLabelText = () => {
     switch (label) {
       case "LIKELY_AI":
-        return "Likely AI";
+        return "AI 생성 가능성 높음";
       case "UNCLEAR":
-        return "Unclear";
+        return "판단 불확실";
       case "LIKELY_HUMAN":
-        return "Likely Authentic";
+        return "실제 영상 가능성 높음";
     }
   };
 
@@ -104,8 +104,8 @@ export function ScoreGauge({ score, label }: ScoreGaugeProps) {
           >
             {score}
           </span>
-          <span className="text-sm text-muted-foreground font-medium">percent</span>
-          <span className="text-xs text-muted-foreground mt-1">AI 생성일 가능성</span>
+          <span className="text-sm text-muted-foreground font-medium">%</span>
+          <span className="text-xs text-muted-foreground mt-1">AI 생성 가능성</span>
         </motion.div>
       </div>
 
