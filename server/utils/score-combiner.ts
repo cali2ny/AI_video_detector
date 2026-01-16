@@ -1,4 +1,4 @@
-import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta, DebugInfo } from "@shared/schema";
+import type { DetectionLabel, AnalyzeVideoResponse, AnalysisMeta, DebugInfo, CommunityAnalysis } from "@shared/schema";
 
 interface CombineScoreParams {
   heuristicScore: number;
@@ -8,6 +8,9 @@ interface CombineScoreParams {
   videoId: string;
   channelTitle?: string;
   durationSeconds?: number;
+  community?: CommunityAnalysis;
+  communityAdjustment: number;
+  communityReason: string | null;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -46,20 +49,31 @@ function getTips(label: DetectionLabel): string[] {
 }
 
 export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse {
-  const { heuristicScore, heuristicReasons, externalScore, thumbnailUrl, videoId, channelTitle, durationSeconds } = params;
+  const {
+    heuristicScore,
+    heuristicReasons,
+    externalScore,
+    thumbnailUrl,
+    videoId,
+    channelTitle,
+    durationSeconds,
+    community,
+    communityAdjustment,
+    communityReason,
+  } = params;
 
-  let finalScore: number;
+  let baseScore: number;
   let source: AnalysisMeta["source"];
 
   if (externalScore !== null) {
-    finalScore = heuristicScore * 0.3 + externalScore * 0.7;
+    baseScore = heuristicScore * 0.3 + externalScore * 0.7;
     source = "heuristic_plus_external";
   } else {
-    finalScore = heuristicScore;
+    baseScore = heuristicScore;
     source = "heuristic_only";
   }
 
-  finalScore = clamp(Math.round(finalScore), 0, 100);
+  const finalScore = clamp(Math.round(baseScore + communityAdjustment), 0, 100);
 
   const label = getLabel(finalScore);
   const tips = getTips(label);
@@ -67,12 +81,17 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
   const reasons = [...heuristicReasons];
 
   if (externalScore !== null) {
-    reasons.push(`딥러닝 기반 탐지 모델이 이 영상을 약 ${externalScore}% 확률로 AI 생성으로 분류했습니다.`);
+    reasons.push(`[딥러닝 결과] 딥러닝 기반 탐지 모델이 이 영상을 약 ${externalScore}% 확률로 AI 생성으로 분류했습니다.`);
+  }
+
+  if (communityReason) {
+    reasons.push(communityReason);
   }
 
   const debug: DebugInfo = {
     heuristicScore: Math.round(heuristicScore),
     externalApiScore: externalScore !== null ? Math.round(externalScore) : null,
+    communityAdjustment,
     finalScore,
   };
 
@@ -91,5 +110,6 @@ export function combineScores(params: CombineScoreParams): AnalyzeVideoResponse 
       analyzedAt: new Date().toISOString(),
     },
     debug,
+    community,
   };
 }

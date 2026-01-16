@@ -5,6 +5,7 @@ import { extractVideoId, getBestThumbnail, getVideoMetadata } from "./utils/yout
 import { analyzeImage } from "./utils/image-analysis";
 import { callExternalDetectionApi } from "./utils/external-api";
 import { combineScores } from "./utils/score-combiner";
+import { fetchAndAnalyzeComments, calculateCommunityAdjustment } from "./utils/comments";
 
 const analyzeRequestSchema = z.object({
   videoUrl: z.string().min(1, "YouTube URL을 입력해주세요"),
@@ -33,14 +34,17 @@ export async function registerRoutes(
         });
       }
 
-      const [thumbnailUrl, metadata] = await Promise.all([
+      const [thumbnailUrl, metadata, community] = await Promise.all([
         getBestThumbnail(videoId),
         getVideoMetadata(videoId),
+        fetchAndAnalyzeComments(videoId),
       ]);
 
       const heuristicResult = await analyzeImage(thumbnailUrl);
 
       const externalResult = await callExternalDetectionApi([thumbnailUrl]);
+
+      const { adjustment: communityAdjustment, reason: communityReason } = calculateCommunityAdjustment(community);
 
       const response = combineScores({
         heuristicScore: heuristicResult.score,
@@ -50,6 +54,9 @@ export async function registerRoutes(
         videoId,
         channelTitle: metadata.channelTitle,
         durationSeconds: metadata.durationSeconds,
+        community,
+        communityAdjustment,
+        communityReason,
       });
 
       return res.json(response);

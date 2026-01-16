@@ -8,6 +8,21 @@ export type AnalyzeVideoRequest = z.infer<typeof analyzeVideoRequestSchema>;
 
 export type DetectionLabel = "LIKELY_AI" | "UNCLEAR" | "LIKELY_HUMAN";
 
+export interface CommentItem {
+  author: string;
+  text: string;
+  likeCount: number;
+}
+
+export interface CommunityAnalysis {
+  totalComments: number;
+  aiVotes: number;
+  realVotes: number;
+  neutralVotes: number;
+  topAiComments: CommentItem[];
+  topRealComments: CommentItem[];
+}
+
 export interface AnalysisMeta {
   sourceType: "YOUTUBE_URL";
   source: "heuristic_only" | "heuristic_plus_external";
@@ -21,6 +36,7 @@ export interface AnalysisMeta {
 export interface DebugInfo {
   heuristicScore: number;
   externalApiScore: number | null;
+  communityAdjustment: number;
   finalScore: number;
 }
 
@@ -31,6 +47,7 @@ export interface AnalyzeVideoResponse {
   tips: string[];
   meta: AnalysisMeta;
   debug: DebugInfo;
+  community?: CommunityAnalysis;
 }
 
 export interface HeuristicResult {
