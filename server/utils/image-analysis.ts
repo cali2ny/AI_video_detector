@@ -1,221 +1,401 @@
+import sharp from "sharp";
 import type { HeuristicResult } from "@shared/schema";
 
-interface PixelData {
-  r: number;
-  g: number;
-  b: number;
+interface ImageStats {
+  width: number;
+  height: number;
+  channels: number;
+  pixels: Buffer;
 }
 
-async function fetchImageAsBuffer(url: string): Promise<Buffer> {
+async function fetchAndDecodeImage(url: string): Promise<ImageStats> {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.status}`);
   }
   const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  const buffer = Buffer.from(arrayBuffer);
+
+  const image = sharp(buffer);
+  const metadata = await image.metadata();
+  const rawPixels = await image.raw().toBuffer();
+
+  return {
+    width: metadata.width || 320,
+    height: metadata.height || 180,
+    channels: metadata.channels || 3,
+    pixels: rawPixels,
+  };
 }
 
-function decodeSimpleJpeg(buffer: Buffer): { width: number; height: number; pixels: PixelData[] } {
-  const pixels: PixelData[] = [];
-  let width = 320;
-  let height = 180;
-
-  for (let i = 0; i < buffer.length - 2; i++) {
-    if (buffer[i] === 0xff && buffer[i + 1] === 0xc0) {
-      height = (buffer[i + 5] << 8) | buffer[i + 6];
-      width = (buffer[i + 7] << 8) | buffer[i + 8];
-      break;
-    }
-  }
-
-  const sampleSize = Math.min(10000, buffer.length / 3);
-  const step = Math.floor(buffer.length / sampleSize);
-
-  for (let i = 0; i < buffer.length - 2; i += step) {
-    pixels.push({
-      r: buffer[i] || 0,
-      g: buffer[i + 1] || 0,
-      b: buffer[i + 2] || 0,
-    });
-  }
-
-  return { width, height, pixels };
+function getPixel(stats: ImageStats, x: number, y: number): { r: number; g: number; b: number } {
+  const idx = (y * stats.width + x) * stats.channels;
+  return {
+    r: stats.pixels[idx] || 0,
+    g: stats.pixels[idx + 1] || 0,
+    b: stats.pixels[idx + 2] || 0,
+  };
 }
 
-function calculateBrightnessUniformity(pixels: PixelData[]): number {
-  if (pixels.length === 0) return 0;
+function calculateBrightnessUniformity(stats: ImageStats): number {
+  const sampleCount = Math.min(5000, stats.width * stats.height);
+  const step = Math.floor((stats.width * stats.height) / sampleCount);
+  
+  const brightnesses: number[] = [];
+  for (let i = 0; i < stats.width * stats.height; i += step) {
+    const x = i % stats.width;
+    const y = Math.floor(i / stats.width);
+    const p = getPixel(stats, x, y);
+    brightnesses.push((p.r + p.g + p.b) / 3);
+  }
 
-  const brightnesses = pixels.map((p) => (p.r + p.g + p.b) / 3);
   const mean = brightnesses.reduce((a, b) => a + b, 0) / brightnesses.length;
-  const variance =
-    brightnesses.reduce((sum, b) => sum + Math.pow(b - mean, 2), 0) /
-    brightnesses.length;
+  const variance = brightnesses.reduce((sum, b) => sum + Math.pow(b - mean, 2), 0) / brightnesses.length;
   const stdDev = Math.sqrt(variance);
 
-  const normalizedStdDev = Math.min(stdDev / 80, 1);
-  return 1 - normalizedStdDev;
+  return Math.max(0, Math.min(1, 1 - stdDev / 80));
 }
 
-function calculateColorDistribution(pixels: PixelData[]): number {
-  if (pixels.length === 0) return 0;
+function calculateColorSaturation(stats: ImageStats): number {
+  const sampleCount = Math.min(3000, stats.width * stats.height);
+  const step = Math.floor((stats.width * stats.height) / sampleCount);
+  
+  let totalSaturation = 0;
+  let count = 0;
 
-  const histogram: number[] = new Array(16).fill(0);
-
-  for (const pixel of pixels) {
-    const hue = Math.floor(
-      ((Math.atan2(
-        Math.sqrt(3) * (pixel.g - pixel.b),
-        2 * pixel.r - pixel.g - pixel.b
-      ) *
-        180) /
-        Math.PI +
-        180) /
-        22.5
-    );
-    histogram[Math.min(15, Math.max(0, hue))]++;
+  for (let i = 0; i < stats.width * stats.height; i += step) {
+    const x = i % stats.width;
+    const y = Math.floor(i / stats.width);
+    const p = getPixel(stats, x, y);
+    
+    const max = Math.max(p.r, p.g, p.b);
+    const min = Math.min(p.r, p.g, p.b);
+    const saturation = max === 0 ? 0 : (max - min) / max;
+    
+    totalSaturation += saturation;
+    count++;
   }
 
-  const total = histogram.reduce((a, b) => a + b, 0);
-  if (total === 0) return 0;
-
-  const normalized = histogram.map((h) => h / total);
-  const entropy = -normalized.reduce((sum, p) => {
-    if (p > 0) return sum + p * Math.log2(p);
-    return sum;
-  }, 0);
-
-  const maxEntropy = Math.log2(16);
-  return entropy / maxEntropy;
+  return totalSaturation / count;
 }
 
-function calculateEdgeDensity(pixels: PixelData[], width: number): number {
-  if (pixels.length < width + 1) return 0.5;
+function calculateColorBanding(stats: ImageStats): number {
+  const bandingScore = [];
+  const sampleRows = Math.min(50, stats.height);
+  const rowStep = Math.floor(stats.height / sampleRows);
 
-  let edgeCount = 0;
-  const threshold = 30;
+  for (let row = 0; row < stats.height; row += rowStep) {
+    let gradientChanges = 0;
+    let prevDiff = 0;
 
-  for (let i = 0; i < pixels.length - 1; i++) {
-    const current = (pixels[i].r + pixels[i].g + pixels[i].b) / 3;
-    const next = (pixels[i + 1].r + pixels[i + 1].g + pixels[i + 1].b) / 3;
+    for (let x = 1; x < stats.width - 1; x++) {
+      const p1 = getPixel(stats, x - 1, row);
+      const p2 = getPixel(stats, x, row);
+      const p3 = getPixel(stats, x + 1, row);
 
-    if (Math.abs(current - next) > threshold) {
-      edgeCount++;
+      const diff1 = ((p2.r - p1.r) + (p2.g - p1.g) + (p2.b - p1.b)) / 3;
+      const diff2 = ((p3.r - p2.r) + (p3.g - p2.g) + (p3.b - p2.b)) / 3;
+
+      if (Math.abs(diff1) < 3 && Math.abs(diff2) < 3 && Math.abs(diff1 - diff2) < 1) {
+        gradientChanges++;
+      }
+      prevDiff = diff1;
+    }
+
+    bandingScore.push(gradientChanges / stats.width);
+  }
+
+  return bandingScore.reduce((a, b) => a + b, 0) / bandingScore.length;
+}
+
+function calculateTextureRepetition(stats: ImageStats): number {
+  const blockSize = 16;
+  const blocksX = Math.floor(stats.width / blockSize);
+  const blocksY = Math.floor(stats.height / blockSize);
+  
+  if (blocksX < 3 || blocksY < 3) return 0;
+
+  const blockSignatures: number[][] = [];
+
+  for (let by = 0; by < Math.min(blocksY, 10); by++) {
+    for (let bx = 0; bx < Math.min(blocksX, 10); bx++) {
+      const signature: number[] = [];
+      for (let dy = 0; dy < blockSize; dy += 4) {
+        for (let dx = 0; dx < blockSize; dx += 4) {
+          const x = bx * blockSize + dx;
+          const y = by * blockSize + dy;
+          if (x < stats.width && y < stats.height) {
+            const p = getPixel(stats, x, y);
+            signature.push(Math.floor((p.r + p.g + p.b) / 30));
+          }
+        }
+      }
+      blockSignatures.push(signature);
     }
   }
 
-  return Math.min(edgeCount / (pixels.length * 0.3), 1);
-}
-
-function calculateNoiseLevel(pixels: PixelData[]): number {
-  if (pixels.length < 10) return 0.5;
-
-  let noiseSum = 0;
-  const windowSize = 5;
-
-  for (let i = windowSize; i < pixels.length - windowSize; i++) {
-    const center = (pixels[i].r + pixels[i].g + pixels[i].b) / 3;
-    let neighborSum = 0;
-
-    for (let j = -windowSize; j <= windowSize; j++) {
-      if (j !== 0) {
-        const neighbor =
-          (pixels[i + j].r + pixels[i + j].g + pixels[i + j].b) / 3;
-        neighborSum += neighbor;
+  let similarPairs = 0;
+  for (let i = 0; i < blockSignatures.length; i++) {
+    for (let j = i + 1; j < blockSignatures.length; j++) {
+      const sig1 = blockSignatures[i];
+      const sig2 = blockSignatures[j];
+      if (sig1.length === sig2.length && sig1.length > 0) {
+        let matches = 0;
+        for (let k = 0; k < sig1.length; k++) {
+          if (Math.abs(sig1[k] - sig2[k]) <= 1) matches++;
+        }
+        if (matches / sig1.length > 0.8) similarPairs++;
       }
     }
-
-    const neighborAvg = neighborSum / (windowSize * 2);
-    noiseSum += Math.abs(center - neighborAvg);
   }
 
-  const avgNoise = noiseSum / (pixels.length - windowSize * 2);
-  return Math.min(avgNoise / 20, 1);
+  const totalPairs = (blockSignatures.length * (blockSignatures.length - 1)) / 2;
+  return totalPairs > 0 ? similarPairs / totalPairs : 0;
 }
 
-function calculateHighFrequencyRatio(pixels: PixelData[]): number {
-  if (pixels.length < 4) return 0.5;
+function calculateSmoothness(stats: ImageStats): number {
+  const sampleSize = Math.min(2000, stats.width * stats.height);
+  const step = Math.floor((stats.width * stats.height) / sampleSize);
+  
+  let smoothPixels = 0;
+  let totalChecked = 0;
 
-  let highFreqCount = 0;
-  let lowFreqCount = 0;
+  for (let i = step; i < stats.width * stats.height - step; i += step) {
+    const x = i % stats.width;
+    const y = Math.floor(i / stats.width);
+    
+    if (x > 0 && x < stats.width - 1 && y > 0 && y < stats.height - 1) {
+      const center = getPixel(stats, x, y);
+      const neighbors = [
+        getPixel(stats, x - 1, y),
+        getPixel(stats, x + 1, y),
+        getPixel(stats, x, y - 1),
+        getPixel(stats, x, y + 1),
+      ];
 
-  for (let i = 2; i < pixels.length - 2; i++) {
-    const values = [-2, -1, 0, 1, 2].map(
-      (offset) =>
-        (pixels[i + offset].r + pixels[i + offset].g + pixels[i + offset].b) / 3
-    );
-
-    const lowFreq = Math.abs(values[2] - (values[0] + values[4]) / 2);
-    const highFreq = Math.abs(
-      values[2] - (values[1] + values[3]) / 2
-    );
-
-    if (highFreq > 10) highFreqCount++;
-    if (lowFreq > 10) lowFreqCount++;
+      let totalDiff = 0;
+      for (const n of neighbors) {
+        totalDiff += Math.abs(center.r - n.r) + Math.abs(center.g - n.g) + Math.abs(center.b - n.b);
+      }
+      
+      const avgDiff = totalDiff / (neighbors.length * 3);
+      if (avgDiff < 5) smoothPixels++;
+      totalChecked++;
+    }
   }
 
-  const total = highFreqCount + lowFreqCount;
-  if (total === 0) return 0.5;
+  return totalChecked > 0 ? smoothPixels / totalChecked : 0;
+}
 
-  return highFreqCount / total;
+function calculateEdgeSharpness(stats: ImageStats): number {
+  const sampleRows = Math.min(30, stats.height);
+  const rowStep = Math.floor(stats.height / sampleRows);
+  
+  let sharpEdges = 0;
+  let totalEdges = 0;
+
+  for (let row = 1; row < stats.height - 1; row += rowStep) {
+    for (let x = 1; x < stats.width - 1; x += 3) {
+      const center = getPixel(stats, x, row);
+      const left = getPixel(stats, x - 1, row);
+      const right = getPixel(stats, x + 1, row);
+
+      const diffLeft = Math.abs(center.r - left.r) + Math.abs(center.g - left.g) + Math.abs(center.b - left.b);
+      const diffRight = Math.abs(center.r - right.r) + Math.abs(center.g - right.g) + Math.abs(center.b - right.b);
+
+      if (diffLeft > 30 || diffRight > 30) {
+        totalEdges++;
+        if (diffLeft > 80 || diffRight > 80) {
+          sharpEdges++;
+        }
+      }
+    }
+  }
+
+  return totalEdges > 0 ? sharpEdges / totalEdges : 0;
+}
+
+function calculateNoiseLevel(stats: ImageStats): number {
+  const sampleSize = Math.min(1500, stats.width * stats.height);
+  const step = Math.floor((stats.width * stats.height) / sampleSize);
+  
+  let noiseSum = 0;
+  let count = 0;
+
+  for (let i = step; i < stats.width * stats.height - step; i += step) {
+    const x = i % stats.width;
+    const y = Math.floor(i / stats.width);
+    
+    if (x > 1 && x < stats.width - 2 && y > 1 && y < stats.height - 2) {
+      const center = getPixel(stats, x, y);
+      const neighbors = [
+        getPixel(stats, x - 1, y - 1), getPixel(stats, x, y - 1), getPixel(stats, x + 1, y - 1),
+        getPixel(stats, x - 1, y), getPixel(stats, x + 1, y),
+        getPixel(stats, x - 1, y + 1), getPixel(stats, x, y + 1), getPixel(stats, x + 1, y + 1),
+      ];
+
+      const avgR = neighbors.reduce((s, n) => s + n.r, 0) / 8;
+      const avgG = neighbors.reduce((s, n) => s + n.g, 0) / 8;
+      const avgB = neighbors.reduce((s, n) => s + n.b, 0) / 8;
+
+      const noise = Math.abs(center.r - avgR) + Math.abs(center.g - avgG) + Math.abs(center.b - avgB);
+      noiseSum += noise;
+      count++;
+    }
+  }
+
+  const avgNoise = count > 0 ? noiseSum / count : 0;
+  return Math.min(avgNoise / 30, 1);
+}
+
+function calculateContrastVariance(stats: ImageStats): number {
+  const regions: number[] = [];
+  const regionSize = Math.floor(Math.min(stats.width, stats.height) / 4);
+  
+  for (let ry = 0; ry < 4; ry++) {
+    for (let rx = 0; rx < 4; rx++) {
+      let min = 255, max = 0;
+      const startX = rx * regionSize;
+      const startY = ry * regionSize;
+      
+      for (let dy = 0; dy < regionSize; dy += 4) {
+        for (let dx = 0; dx < regionSize; dx += 4) {
+          const x = Math.min(startX + dx, stats.width - 1);
+          const y = Math.min(startY + dy, stats.height - 1);
+          const p = getPixel(stats, x, y);
+          const brightness = (p.r + p.g + p.b) / 3;
+          min = Math.min(min, brightness);
+          max = Math.max(max, brightness);
+        }
+      }
+      
+      regions.push(max - min);
+    }
+  }
+
+  const mean = regions.reduce((a, b) => a + b, 0) / regions.length;
+  const variance = regions.reduce((sum, c) => sum + Math.pow(c - mean, 2), 0) / regions.length;
+  
+  return Math.sqrt(variance) / 128;
+}
+
+function calculateColorTemperatureConsistency(stats: ImageStats): number {
+  const regions: { warmth: number }[] = [];
+  const regionSize = Math.floor(Math.min(stats.width, stats.height) / 3);
+
+  for (let ry = 0; ry < 3; ry++) {
+    for (let rx = 0; rx < 3; rx++) {
+      let totalR = 0, totalB = 0, count = 0;
+      const startX = rx * regionSize;
+      const startY = ry * regionSize;
+
+      for (let dy = 0; dy < regionSize; dy += 4) {
+        for (let dx = 0; dx < regionSize; dx += 4) {
+          const x = Math.min(startX + dx, stats.width - 1);
+          const y = Math.min(startY + dy, stats.height - 1);
+          const p = getPixel(stats, x, y);
+          totalR += p.r;
+          totalB += p.b;
+          count++;
+        }
+      }
+
+      const warmth = count > 0 ? (totalR - totalB) / count : 0;
+      regions.push({ warmth });
+    }
+  }
+
+  const meanWarmth = regions.reduce((s, r) => s + r.warmth, 0) / regions.length;
+  const variance = regions.reduce((s, r) => s + Math.pow(r.warmth - meanWarmth, 2), 0) / regions.length;
+
+  return 1 - Math.min(Math.sqrt(variance) / 50, 1);
 }
 
 export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
   try {
-    const buffer = await fetchImageAsBuffer(imageUrl);
-    const { width, pixels } = decodeSimpleJpeg(buffer);
+    const stats = await fetchAndDecodeImage(imageUrl);
 
-    const brightnessUniformity = calculateBrightnessUniformity(pixels);
-    const colorDistribution = calculateColorDistribution(pixels);
-    const edgeDensity = calculateEdgeDensity(pixels, width);
-    const noiseLevel = calculateNoiseLevel(pixels);
-    const highFrequencyRatio = calculateHighFrequencyRatio(pixels);
+    const brightnessUniformity = calculateBrightnessUniformity(stats);
+    const colorSaturation = calculateColorSaturation(stats);
+    const colorBanding = calculateColorBanding(stats);
+    const textureRepetition = calculateTextureRepetition(stats);
+    const smoothness = calculateSmoothness(stats);
+    const edgeSharpness = calculateEdgeSharpness(stats);
+    const noiseLevel = calculateNoiseLevel(stats);
+    const contrastVariance = calculateContrastVariance(stats);
+    const colorTempConsistency = calculateColorTemperatureConsistency(stats);
 
     const reasons: string[] = [];
-
     let score = 0;
 
-    if (brightnessUniformity > 0.7) {
-      score += 20;
-      reasons.push("밝기 분포가 매우 균일함 (AI 생성 특성)");
-    } else if (brightnessUniformity > 0.5) {
-      score += 10;
-      reasons.push("밝기 분포가 균일한 편");
-    }
-
-    if (colorDistribution < 0.4) {
+    if (brightnessUniformity > 0.75) {
       score += 15;
-      reasons.push("색상 다양성이 낮음 (단조로운 색상 분포)");
-    } else if (colorDistribution > 0.8) {
-      score += 10;
-      reasons.push("색상 분포가 매우 균등함");
+      reasons.push("[밝기 패턴] 밝기 분포가 매우 균일함 - AI 생성 이미지에서 자주 나타나는 특성");
+    } else if (brightnessUniformity > 0.6) {
+      score += 8;
+      reasons.push("[밝기 패턴] 밝기 분포가 다소 균일한 편");
     }
 
-    if (edgeDensity < 0.2) {
-      score += 20;
-      reasons.push("경계선이 매우 매끄러움 (과도하게 깔끔한 이미지)");
-    } else if (edgeDensity < 0.4) {
-      score += 10;
-      reasons.push("경계선 밀도가 낮은 편");
-    }
-
-    if (noiseLevel < 0.15) {
-      score += 25;
-      reasons.push("노이즈가 거의 없음 (자연스럽지 않은 깨끗함)");
-    } else if (noiseLevel < 0.3) {
+    if (colorSaturation > 0.55) {
       score += 12;
-      reasons.push("노이즈 수준이 낮음");
+      reasons.push("[색상 패턴] 과도하게 선명한 색상 채도 감지");
+    } else if (colorSaturation < 0.15) {
+      score += 8;
+      reasons.push("[색상 패턴] 비정상적으로 낮은 색상 채도");
     }
 
-    if (highFrequencyRatio < 0.3) {
-      score += 20;
-      reasons.push("고주파 성분이 적음 (세밀한 디테일 부족)");
-    } else if (highFrequencyRatio < 0.5) {
+    if (colorBanding > 0.4) {
+      score += 18;
+      reasons.push("[색상 패턴] 색상 그라데이션에서 밴딩 현상 감지 - AI 이미지의 일반적인 아티팩트");
+    } else if (colorBanding > 0.25) {
       score += 10;
-      reasons.push("고주파 성분이 다소 낮음");
+      reasons.push("[색상 패턴] 일부 영역에서 색상 밴딩 감지");
+    }
+
+    if (textureRepetition > 0.15) {
+      score += 20;
+      reasons.push("[텍스처] 반복적인 텍스처 패턴 감지 - AI 생성의 전형적인 징후");
+    } else if (textureRepetition > 0.08) {
+      score += 12;
+      reasons.push("[텍스처] 일부 영역에서 유사한 텍스처 패턴 발견");
+    }
+
+    if (smoothness > 0.7) {
+      score += 18;
+      reasons.push("[텍스처] 비정상적으로 매끄러운 표면 - 과도하게 깔끔한 이미지");
+    } else if (smoothness > 0.5) {
+      score += 10;
+      reasons.push("[텍스처] 부분적으로 과하게 매끄러운 영역 존재");
+    }
+
+    if (edgeSharpness > 0.6) {
+      score += 12;
+      reasons.push("[텍스처] 인위적으로 날카로운 경계선 감지");
+    } else if (edgeSharpness < 0.1 && smoothness > 0.4) {
+      score += 10;
+      reasons.push("[텍스처] 경계선이 너무 부드러움 - 자연스럽지 않은 블러 효과");
+    }
+
+    if (noiseLevel < 0.08) {
+      score += 15;
+      reasons.push("[노이즈] 노이즈가 거의 없음 - 자연 촬영에서는 드문 특성");
+    } else if (noiseLevel < 0.15) {
+      score += 8;
+      reasons.push("[노이즈] 노이즈 수준이 매우 낮음");
+    }
+
+    if (contrastVariance < 0.15) {
+      score += 10;
+      reasons.push("[밝기 패턴] 영역별 대비가 매우 균일함");
+    }
+
+    if (colorTempConsistency > 0.9) {
+      score += 12;
+      reasons.push("[색상 패턴] 색온도가 전체적으로 너무 일관됨 - 자연광에서는 드문 현상");
     }
 
     if (reasons.length === 0) {
-      reasons.push("분석된 특성들이 자연스러운 범위 내에 있음");
+      reasons.push("[분석 결과] 분석된 특성들이 자연스러운 범위 내에 있음");
     }
 
     score = Math.min(100, Math.max(0, score));
@@ -225,16 +405,17 @@ export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
       reasons,
       details: {
         brightnessUniformity,
-        colorDistribution,
-        edgeDensity,
+        colorDistribution: colorSaturation,
+        edgeDensity: 1 - smoothness,
         noiseLevel,
-        highFrequencyRatio,
+        highFrequencyRatio: edgeSharpness,
       },
     };
   } catch (error) {
+    console.error("Image analysis error:", error);
     return {
       score: 50,
-      reasons: ["이미지 분석 중 오류 발생, 기본 점수 적용"],
+      reasons: ["[오류] 이미지 분석 중 오류 발생, 기본 점수 적용"],
       details: {
         brightnessUniformity: 0.5,
         colorDistribution: 0.5,
