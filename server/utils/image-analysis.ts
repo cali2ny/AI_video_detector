@@ -328,70 +328,79 @@ export async function analyzeImage(imageUrl: string): Promise<HeuristicResult> {
     const reasons: string[] = [];
     let score = 0;
 
-    if (brightnessUniformity > 0.75) {
-      score += 15;
+    if (brightnessUniformity > 0.7) {
+      score += 18;
       reasons.push("[밝기 패턴] 밝기 분포가 매우 균일함 - AI 생성 이미지에서 자주 나타나는 특성");
-    } else if (brightnessUniformity > 0.6) {
-      score += 8;
+    } else if (brightnessUniformity > 0.55) {
+      score += 10;
       reasons.push("[밝기 패턴] 밝기 분포가 다소 균일한 편");
     }
 
-    if (colorSaturation > 0.55) {
-      score += 12;
-      reasons.push("[색상 패턴] 과도하게 선명한 색상 채도 감지");
-    } else if (colorSaturation < 0.15) {
+    if (colorSaturation > 0.5) {
+      score += 15;
+      reasons.push("[색상 패턴] 과도하게 선명한 색상 채도 감지 - AI 생성 특유의 과채도");
+    } else if (colorSaturation > 0.35) {
       score += 8;
+      reasons.push("[색상 패턴] 색상 채도가 높은 편");
+    } else if (colorSaturation < 0.12) {
+      score += 10;
       reasons.push("[색상 패턴] 비정상적으로 낮은 색상 채도");
     }
 
-    if (colorBanding > 0.4) {
-      score += 18;
+    if (colorBanding > 0.35) {
+      score += 20;
       reasons.push("[색상 패턴] 색상 그라데이션에서 밴딩 현상 감지 - AI 이미지의 일반적인 아티팩트");
-    } else if (colorBanding > 0.25) {
-      score += 10;
+    } else if (colorBanding > 0.2) {
+      score += 12;
       reasons.push("[색상 패턴] 일부 영역에서 색상 밴딩 감지");
     }
 
-    if (textureRepetition > 0.15) {
-      score += 20;
+    if (textureRepetition > 0.12) {
+      score += 22;
       reasons.push("[텍스처] 반복적인 텍스처 패턴 감지 - AI 생성의 전형적인 징후");
-    } else if (textureRepetition > 0.08) {
-      score += 12;
+    } else if (textureRepetition > 0.05) {
+      score += 14;
       reasons.push("[텍스처] 일부 영역에서 유사한 텍스처 패턴 발견");
     }
 
-    if (smoothness > 0.7) {
-      score += 18;
+    if (smoothness > 0.65) {
+      score += 20;
       reasons.push("[텍스처] 비정상적으로 매끄러운 표면 - 과도하게 깔끔한 이미지");
-    } else if (smoothness > 0.5) {
-      score += 10;
+    } else if (smoothness > 0.45) {
+      score += 12;
       reasons.push("[텍스처] 부분적으로 과하게 매끄러운 영역 존재");
     }
 
-    if (edgeSharpness > 0.6) {
-      score += 12;
+    if (edgeSharpness > 0.55) {
+      score += 14;
       reasons.push("[텍스처] 인위적으로 날카로운 경계선 감지");
-    } else if (edgeSharpness < 0.1 && smoothness > 0.4) {
-      score += 10;
+    } else if (edgeSharpness < 0.08 && smoothness > 0.35) {
+      score += 12;
       reasons.push("[텍스처] 경계선이 너무 부드러움 - 자연스럽지 않은 블러 효과");
     }
 
-    if (noiseLevel < 0.08) {
-      score += 15;
+    if (noiseLevel < 0.06) {
+      score += 18;
       reasons.push("[노이즈] 노이즈가 거의 없음 - 자연 촬영에서는 드문 특성");
-    } else if (noiseLevel < 0.15) {
-      score += 8;
+    } else if (noiseLevel < 0.12) {
+      score += 10;
       reasons.push("[노이즈] 노이즈 수준이 매우 낮음");
     }
 
-    if (contrastVariance < 0.15) {
-      score += 10;
-      reasons.push("[밝기 패턴] 영역별 대비가 매우 균일함");
+    if (contrastVariance < 0.12) {
+      score += 12;
+      reasons.push("[밝기 패턴] 영역별 대비가 매우 균일함 - 인위적인 조명 특성");
+    } else if (contrastVariance < 0.2) {
+      score += 6;
+      reasons.push("[밝기 패턴] 영역별 대비 변화가 적음");
     }
 
-    if (colorTempConsistency > 0.9) {
-      score += 12;
+    if (colorTempConsistency > 0.88) {
+      score += 14;
       reasons.push("[색상 패턴] 색온도가 전체적으로 너무 일관됨 - 자연광에서는 드문 현상");
+    } else if (colorTempConsistency > 0.8) {
+      score += 8;
+      reasons.push("[색상 패턴] 색온도 일관성이 높음");
     }
 
     if (reasons.length === 0) {
